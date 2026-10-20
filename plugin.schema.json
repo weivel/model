@@ -642,7 +642,8 @@
     "properties": {
       "entry": {
         "type": "string",
-        "minLength": 1
+        "minLength": 1,
+        "fix": "capabilities are declared, so add \"entry\" naming the module that provides them, for example \"dist/index.js\""
       }
     }
   }
