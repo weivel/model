@@ -1,7 +1,8 @@
 ## What this is
 
-The plugin manifest vocabulary: `plugin.schema.json`, the one schema every `plugin.json` is written
-against and every implementation validates against, whichever application the plugin targets.
+The plugin model: `plugin.schema.json`, the one schema every `plugin.json` is written against and
+every implementation validates against, whichever application the plugin targets, and
+`INVARIANTS.md`, the eleven properties every implementation holds whatever its language.
 
 **It lives outside every implementation on purpose.** An implementation that holds the vocabulary
 defines it, and every other language then reads that implementation's output rather than a neutral
@@ -12,6 +13,8 @@ its own tests.
 
 - `plugin.schema.json`: the schema, as draft-07, published at
   `https://weivel.github.io/model/plugin.schema.json`, which is also its `$id`.
+- `INVARIANTS.md`: what an implementation does with a manifest, each with the reason it exists.
+  Binding specifications render them per language and the conformance suite tests them.
 - `test/`: compiles the schema strictly, so a misspelt keyword fails here rather than being ignored
   downstream. `fix` is the one keyword of its own: the hint an implementation prints beside a
   violation.
