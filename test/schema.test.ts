@@ -44,6 +44,13 @@ describe("plugin.schema.json", () => {
     }
   });
 
+  it("refuses an entry that hides an escape behind a line break or a control character", () => {
+    const validate = compile();
+    for (const entry of ["a\n/../../x.js", "a/..\n", "a\u0085/../x.js", "a\u2028/../x.js", "dist/index\u0000.js"]) {
+      expect(validate({ id: "a", api: 1, entry }), JSON.stringify(entry)).toBe(false);
+    }
+  });
+
   it("refuses a duplicate capability or permission", () => {
     const validate = compile();
     expect(validate({ id: "a", api: 1, entry: "dist/index.js", capabilities: ["a", "a"] })).toBe(false);
