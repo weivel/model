@@ -6,7 +6,8 @@
   "license": "MIT",
   "type": "module",
   "files": [
-    "plugin.schema.json"
+    "plugin.schema.json",
+    "INVARIANTS.md"
   ],
   "scripts": {
     "build": "tsc --noEmit",
