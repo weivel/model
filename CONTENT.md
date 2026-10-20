@@ -15,6 +15,8 @@ its own tests.
   `https://weivel.github.io/model/plugin.schema.json`, which is also its `$id`.
 - `INVARIANTS.md`: what an implementation does with a manifest, each with the reason it exists.
   Binding specifications render them per language and the conformance suite tests them.
+- `VALIDATION.md`: the two rules a validator applies after the schema, because draft-07 cannot
+  express them: one service listed in two forms, and a bare service id the host does not list.
 - `test/`: compiles the schema strictly, so a misspelt keyword fails here rather than being ignored
   downstream. `fix` is the one keyword of its own: the hint an implementation prints beside a
   violation.

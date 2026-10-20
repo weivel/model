@@ -27,6 +27,29 @@ describe("plugin.schema.json", () => {
     expect(schema.$id).toBe(SCHEMA_URL);
   });
 
+  it("refuses capabilities without an entry", () => {
+    const validate = compile();
+    expect(validate({ id: "a", api: 1, capabilities: ["provider"] })).toBe(false);
+    expect(validate({ id: "a", api: 1, capabilities: ["provider"], entry: "dist/index.js" })).toBe(true);
+    expect(validate({ id: "a", api: 1, capabilities: [] })).toBe(true);
+  });
+
+  it("refuses an entry outside the repo", () => {
+    const validate = compile();
+    for (const entry of ["/abs/x.js", "\\abs\\x.js", "C:/x.js", "../x.js", "dist/../../x.js", "dist\\..\\x.js"]) {
+      expect(validate({ id: "a", api: 1, entry }), entry).toBe(false);
+    }
+    for (const entry of ["dist/index.js", "dist/..x/index.js"]) {
+      expect(validate({ id: "a", api: 1, entry }), entry).toBe(true);
+    }
+  });
+
+  it("refuses a duplicate capability or permission", () => {
+    const validate = compile();
+    expect(validate({ id: "a", api: 1, entry: "dist/index.js", capabilities: ["a", "a"] })).toBe(false);
+    expect(validate({ id: "a", api: 1, permissions: ["net", "net"] })).toBe(false);
+  });
+
   it("accepts a minimal manifest and refuses an id that is not kebab case", () => {
     const validate = compile();
     expect(validate({ id: "config-ledger", api: 1 })).toBe(true);
