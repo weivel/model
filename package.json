@@ -9,6 +9,7 @@
     "plugin.schema.json"
   ],
   "scripts": {
+    "build": "tsc --noEmit",
     "test": "vitest run"
   },
   "devDependencies": {
