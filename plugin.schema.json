@@ -1,0 +1,622 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://weivel.github.io/model/plugin.schema.json",
+  "title": "forebay plugin manifest",
+  "description": "The single machine-readable description of a repo in the forebay ecosystem.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "description": "Pointer at the published manifest schema, for an editor's completion and validation.",
+      "type": "string"
+    },
+    "id": {
+      "description": "The plugin's permanent identity, matching its repository name.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "fix": "use lowercase words joined by single hyphens, for example \"config-ledger\""
+    },
+    "api": {
+      "description": "The lowest API major version this plugin needs. A floor, not a build tag.",
+      "type": "integer",
+      "minimum": 1,
+      "fix": "set \"api\" to the lowest API major version this plugin needs, for example 1"
+    },
+    "entry": {
+      "description": "The built module a host imports. Required once capabilities are declared.",
+      "type": "string",
+      "fix": "point \"entry\" at the built module a host imports, for example \"dist/index.js\""
+    },
+    "displayName": {
+      "description": "The name a surface shows instead of the id.",
+      "type": "string"
+    },
+    "icon": {
+      "description": "Path to a square-viewBox SVG mark, relative to the repo root.",
+      "type": "string"
+    },
+    "icons": {
+      "description": "Further marks this repo ships, each keyed by the id of the thing it belongs to.",
+      "type": "object",
+      "additionalProperties": {
+        "description": "Path to a square-viewBox SVG mark, relative to the repo root.",
+        "type": "string"
+      }
+    },
+    "capabilities": {
+      "description": "Host-facing abilities this plugin provides at activation.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "fix": "list capability ids as strings, for example [\"provider\", \"screens\"]"
+    },
+    "targets": {
+      "description": "The spisor applications this artifact is for. Absent means every application.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "fix": "list the application ids this is built for, for example [\"forebay\"], or remove \"targets\" to mean every application"
+    },
+    "services": {
+      "description": "The inter-plugin contract: what this plugin offers other plugins, and what it asks of them.",
+      "type": "object",
+      "properties": {
+        "provides": {
+          "description": "Service ids this plugin registers, each namespaced by its own id or a well-known bare id.",
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "description": "One service this plugin registers, with what it advertises.",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "The service id this plugin registers.",
+                    "type": "string"
+                  },
+                  "attributes": {
+                    "description": "What this service claims, keyed by attribute name, until the live service reports its own.",
+                    "type": "object",
+                    "additionalProperties": {
+                      "description": "One advertised value, in the units its attribute name names.",
+                      "type": "number"
+                    }
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            ]
+            ,"fix": "write the service id as a string, for example \"identity:accounts\", or an object carrying \"id\" and \"attributes\""
+          },
+          "fix": "list service ids as strings, for example [\"identity:accounts\"], or objects carrying \"id\" and \"attributes\""
+        },
+        "consumes": {
+          "description": "Service ids this plugin asks for. A bare string asks for it optionally, which is what every manifest written before this object form meant.",
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "description": "One service this plugin asks for, and what its absence or its shortfall costs.",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "The service id this plugin asks for.",
+                    "type": "string"
+                  },
+                  "optional": {
+                    "description": "Whether this plugin still starts when nothing provides the service. Absent means true, which is what a bare string means.",
+                    "type": "boolean"
+                  },
+                  "degradable": {
+                    "description": "Whether this plugin accepts a service that never satisfies its constraints once the budget is spent. Absent means false, and it never excuses an absence.",
+                    "type": "boolean"
+                  },
+                  "constraints": {
+                    "description": "What this plugin needs of the service, keyed by constraint name, compared against what the service advertises.",
+                    "type": "object",
+                    "additionalProperties": {
+                      "description": "One required value, in the units its constraint name names.",
+                      "type": "number"
+                    }
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            ]
+            ,"fix": "write the service id as a string, for example \"accounts\", or an object carrying \"id\" and what its absence costs"
+          },
+          "fix": "list service ids as strings, for example [\"accounts\"], or objects carrying \"id\" and what its absence costs"
+        }
+      }
+    },
+    "commands": {
+      "description": "Slash commands this plugin contributes, which a host deploys without importing it.",
+      "type": "array",
+      "items": {
+        "description": "One slash command this plugin contributes.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "The command's name, which is also the file it is written to.",
+            "type": "string"
+          },
+          "description": {
+            "description": "What a command picker shows beside the name.",
+            "type": "string"
+          },
+          "argumentHint": {
+            "description": "The argument shape a picker hints at, such as \"list | get <key>\".",
+            "type": "string"
+          },
+          "body": {
+            "description": "Markdown the model is shown, after any shell output.",
+            "type": "string"
+          },
+          "shell": {
+            "description": "A shell line run before the body, which may use $ARGUMENTS and {{BUNDLE}}.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "description"
+        ]
+      }
+    },
+    "config": {
+      "description": "This plugin's settings as it ships them.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The file these settings live in, config/<name>.json, when that is not the plugin's id.",
+          "type": "string"
+        },
+        "defaults": {
+          "description": "Every setting this plugin has, and what it is worth until a home changes it.",
+          "type": "object"
+        }
+      },
+      "required": [
+        "defaults"
+      ]
+    },
+    "data": {
+      "description": "Where this plugin keeps state that is not named after it.",
+      "type": "object",
+      "properties": {
+        "paths": {
+          "description": "Paths this plugin writes to, relative to the home it runs in.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "paths"
+      ]
+    },
+    "permissions": {
+      "description": "Declared permissions, surfaced at install and in dashboards.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lifecycle": {
+      "description": "Which optional lifecycle hooks the entry module exports.",
+      "type": "object",
+      "properties": {
+        "install": {
+          "description": "The entry exports install(ctx), run once after first deploy.",
+          "type": "boolean"
+        },
+        "repair": {
+          "description": "The entry exports repair(ctx), run on demand from a host.",
+          "type": "boolean"
+        }
+      }
+    },
+    "publish": {
+      "description": "How the repo is published, to npm and as Java release assets.",
+      "type": "object",
+      "properties": {
+        "scopedOnly": {
+          "description": "Publish only as @intisy-ai/<name>, because the unscoped name is unavailable.",
+          "type": "boolean"
+        },
+        "jarModule": {
+          "description": "The Gradle modules whose jars ship as release assets, each named by its own classifier.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "generatedReadme": {
+          "description": "The README is rendered at build time, so the release promotes it rather than testing it.",
+          "type": "boolean"
+        },
+        "jarPretest": {
+          "description": "Run the Gradle build before the tests, because a test needs its jar installed first.",
+          "type": "boolean"
+        }
+      }
+    },
+    "repo": {
+      "description": "Repository metadata: the GitHub description and topic set are derived from it.",
+      "type": "object",
+      "properties": {
+        "role": {
+          "description": "The role phrase, capitalized, without the fixed \"for the forebay AI-proxy ecosystem.\" suffix.",
+          "type": "string"
+        },
+        "category": {
+          "description": "The single category topic, for example core-library or ai-provider.",
+          "type": "string"
+        },
+        "domains": {
+          "description": "Domain topics, for example claude or gemini.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tech": {
+          "description": "The tech topics, for example typescript, java or svelte.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "topics": {
+          "description": "Topics this repo needs that no other rule derives, for example github-actions.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "role",
+        "category",
+        "tech"
+      ]
+    },
+    "marketplace": {
+      "description": "What this plugin contributes to a host's catalog of installable things.",
+      "type": "object",
+      "properties": {
+        "categories": {
+          "description": "Categories this plugin adds.",
+          "type": "array",
+          "items": {
+            "description": "One category a plugin adds to a host's catalog of installable things.",
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "The category's id, unique across every plugin declaring one.",
+                "type": "string"
+              },
+              "label": {
+                "description": "The name a surface shows. Absent means the id is shown.",
+                "type": "string"
+              },
+              "match": {
+                "description": "Which entries this category holds.",
+                "type": "object",
+                "properties": {
+                  "topics": {
+                    "description": "Repository topics an entry must carry.",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "kind": {
+                    "description": "The catalog kind an entry must be, as the reading host names its kinds.",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "required": [
+              "id",
+              "match"
+            ]
+          }
+        }
+      },
+      "required": [
+        "categories"
+      ]
+    },
+    "app": {
+      "description": "The app this repo is the loader for, declared by the app's own project.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "The app's permanent id, for example claude or opencode.",
+          "type": "string"
+        },
+        "label": {
+          "description": "The name a surface shows instead of the id.",
+          "type": "string"
+        },
+        "icon": {
+          "description": "Path to a square-viewBox SVG mark for the app, relative to the repo root.",
+          "type": "string"
+        },
+        "home": {
+          "description": "Where this app keeps its home directory, in the order a resolver tries.",
+          "type": "object",
+          "properties": {
+            "envOverride": {
+              "description": "Environment variable that overrides every candidate, set by a host driving this app.",
+              "type": "string"
+            },
+            "nativeEnv": {
+              "description": "The app's OWN environment variable for its config directory, which it reads itself.",
+              "type": "string"
+            },
+            "xdgSubdir": {
+              "description": "Subdirectory under the XDG config directory, when the app follows that layout.",
+              "type": "string"
+            },
+            "candidates": {
+              "description": "Paths to try in order, each with a leading ~ for the user home.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "candidates"
+          ]
+        },
+        "detect": {
+          "description": "How to tell whether this app is installed.",
+          "type": "object",
+          "properties": {
+            "binary": {
+              "description": "The executable a user launches, looked up on the path.",
+              "type": "string"
+            },
+            "pkg": {
+              "description": "The npm package the app ships as, for a global-install check.",
+              "type": "string"
+            }
+          }
+        },
+        "loader": {
+          "description": "The plugin this app is reached through. Absent means the app has no loader.",
+          "type": "object",
+          "properties": {
+            "id": {
+              "description": "The loader plugin's id.",
+              "type": "string"
+            },
+            "url": {
+              "description": "Where the loader is cloned from, as owner/repo or a full URL.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "url"
+          ]
+        },
+        "commandsSubdir": {
+          "description": "The subdirectory inside the app home holding its slash commands.",
+          "type": "string"
+        },
+        "paths": {
+          "description": "The names of the storage subdirectories inside this app's home.",
+          "type": "object",
+          "properties": {
+            "repos": {
+              "description": "Where plugin checkouts live.",
+              "type": "string"
+            },
+            "plugin": {
+              "description": "Where deployed plugin bundles and their manifest sidecars live.",
+              "type": "string"
+            },
+            "cache": {
+              "description": "Where cached downloads live.",
+              "type": "string"
+            },
+            "config": {
+              "description": "Where configuration files live.",
+              "type": "string"
+            }
+          }
+        },
+        "proxyPort": {
+          "description": "The port this app's proxy listens on, or 0 when it needs none.",
+          "type": "integer"
+        },
+        "integration": {
+          "description": "How this app reaches the local API.",
+          "type": "string",
+          "enum": [
+            "env-baseurl",
+            "native"
+          ],
+          "fix": "set \"integration\" to \"env-baseurl\" when the app is pointed at the proxy by an environment variable, or \"native\" when it loads the plugin itself"
+        },
+        "wireFormat": {
+          "description": "The wire format this app speaks, for example anthropic.",
+          "type": "string"
+        },
+        "usage": {
+          "description": "Session-storage formats this app writes, for usage readers.",
+          "type": "object",
+          "properties": {
+            "formats": {
+              "description": "Format ids, each of which a consumer maps to a parser of its own.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "formats"
+          ]
+        },
+        "accent": {
+          "description": "Accent colour for this app's surfaces, as a #rrggbb hex string.",
+          "type": "string"
+        },
+        "wrapperCommand": {
+          "description": "The command a user types to launch this app through its loader's wrapper.",
+          "type": "string"
+        },
+        "npmPlugins": {
+          "description": "This app's own npm-plugin mechanism. Absent means it has none.",
+          "type": "object",
+          "properties": {
+            "configFiles": {
+              "description": "Config files to look in, in order, for the plugin list.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "pluginsKey": {
+              "description": "The key inside those files holding the plugin list.",
+              "type": "string"
+            },
+            "packageCache": {
+              "description": "Where the app caches the packages it installed.",
+              "type": "string"
+            },
+            "schemaUrl": {
+              "description": "The app's config schema, for an editor's completion.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "configFiles",
+            "pluginsKey"
+          ]
+        },
+        "startupHook": {
+          "description": "How this app runs a plugin at startup when it has no npm-plugin list of its own.",
+          "type": "object",
+          "properties": {
+            "file": {
+              "description": "The file to write, relative to the app home.",
+              "type": "string"
+            },
+            "path": {
+              "description": "The key path to the array the entry joins.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "entry": {
+              "description": "A JSON template whose strings have the {plugin} placeholder replaced with the plugin's name.",
+              "type": "object"
+            }
+          },
+          "required": [
+            "file",
+            "path",
+            "entry"
+          ]
+        },
+        "discovery": {
+          "description": "Where a marketplace looks for this app's community plugins.",
+          "type": "object",
+          "properties": {
+            "topic": {
+              "description": "The repository topic a community plugin carries.",
+              "type": "string"
+            },
+            "searchQuery": {
+              "description": "A free-text search to run where the topic alone under-reports.",
+              "type": "string"
+            },
+            "awesomeList": {
+              "description": "A curated list to read, as a raw URL.",
+              "type": "string"
+            }
+          }
+        },
+        "projects": {
+          "description": "Where this app records the projects a user has worked in.",
+          "type": "object",
+          "properties": {
+            "historyFile": {
+              "description": "A history file inside the app home.",
+              "type": "string"
+            },
+            "sessionDb": {
+              "description": "Session databases to try in order, absolute or relative to the app home.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "markerFile": {
+              "description": "The file the app writes inside a project's git directory to record the project id.",
+              "type": "string"
+            }
+          }
+        },
+        "modelCatalog": {
+          "description": "The app config file a model catalog is merged into.",
+          "type": "object",
+          "properties": {
+            "files": {
+              "description": "Files to try in order, relative to the app home.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "envOverride": {
+              "description": "Environment variable naming the config file outright.",
+              "type": "string"
+            },
+            "schemaUrl": {
+              "description": "The app's config schema, for an editor's completion.",
+              "type": "string"
+            },
+            "providerKey": {
+              "description": "The key inside that file holding the catalog, named after the app's own config key.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "files",
+            "providerKey"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "home"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "api"
+  ]
+}

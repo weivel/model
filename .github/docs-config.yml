@@ -1,0 +1,2 @@
+kind: generic
+description: The plugin manifest vocabulary, as the one schema every implementation validates against.
