@@ -345,7 +345,7 @@
       ]
     },
     "app": {
-      "$ref": "#/definitions/appDescriptor"
+      "$ref": "#/definitions/appDeclaration"
     }
   },
   "required": [
@@ -378,7 +378,7 @@
     }
   },
   "definitions": {
-    "appDescriptor": {
+    "appDeclaration": {
       "description": "The app this repo is the loader for, declared by the app's own project.",
       "type": "object",
       "properties": {
@@ -395,32 +395,7 @@
           "type": "string"
         },
         "home": {
-          "description": "Where this app keeps its home directory, in the order a resolver tries.",
-          "type": "object",
-          "properties": {
-            "envOverride": {
-              "description": "Environment variable that overrides every candidate, set by a host driving this app.",
-              "type": "string"
-            },
-            "nativeEnv": {
-              "description": "The app's OWN environment variable for its config directory, which it reads itself.",
-              "type": "string"
-            },
-            "xdgSubdir": {
-              "description": "Subdirectory under the XDG config directory, when the app follows that layout.",
-              "type": "string"
-            },
-            "candidates": {
-              "description": "Paths to try in order, each with a leading ~ for the user home.",
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "candidates"
-          ]
+          "$ref": "#/definitions/appHome"
         },
         "detect": {
           "description": "How to tell whether this app is installed.",
@@ -437,22 +412,7 @@
           }
         },
         "loader": {
-          "description": "The plugin this app is reached through. Absent means the app has no loader.",
-          "type": "object",
-          "properties": {
-            "id": {
-              "description": "The loader plugin's id.",
-              "type": "string"
-            },
-            "url": {
-              "description": "Where the loader is cloned from, as owner/repo or a full URL.",
-              "type": "string"
-            }
-          },
-          "required": [
-            "id",
-            "url"
-          ]
+          "$ref": "#/definitions/appLoader"
         },
         "commandsSubdir": {
           "description": "The subdirectory inside the app home holding its slash commands.",
@@ -498,20 +458,7 @@
           "type": "string"
         },
         "usage": {
-          "description": "Session-storage formats this app writes, for usage readers.",
-          "type": "object",
-          "properties": {
-            "formats": {
-              "description": "Format ids, each of which a consumer maps to a parser of its own.",
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "formats"
-          ]
+          "$ref": "#/definitions/appUsage"
         },
         "accent": {
           "description": "Accent colour for this app's surfaces, as a #rrggbb hex string.",
@@ -522,33 +469,7 @@
           "type": "string"
         },
         "npmPlugins": {
-          "description": "This app's own npm-plugin mechanism. Absent means it has none.",
-          "type": "object",
-          "properties": {
-            "configFiles": {
-              "description": "Config files to look in, in order, for the plugin list.",
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "pluginsKey": {
-              "description": "The key inside those files holding the plugin list.",
-              "type": "string"
-            },
-            "packageCache": {
-              "description": "Where the app caches the packages it installed.",
-              "type": "string"
-            },
-            "schemaUrl": {
-              "description": "The app's config schema, for an editor's completion.",
-              "type": "string"
-            }
-          },
-          "required": [
-            "configFiles",
-            "pluginsKey"
-          ]
+          "$ref": "#/definitions/appNpmPlugins"
         },
         "startupHook": {
           "description": "How this app runs a plugin at startup when it has no npm-plugin list of its own.",
@@ -577,78 +498,336 @@
           ]
         },
         "discovery": {
-          "description": "Where a marketplace looks for this app's community plugins.",
-          "type": "object",
-          "properties": {
-            "topic": {
-              "description": "The repository topic a community plugin carries.",
-              "type": "string"
-            },
-            "searchQuery": {
-              "description": "A free-text search to run where the topic alone under-reports.",
-              "type": "string"
-            },
-            "awesomeList": {
-              "description": "A curated list to read, as a raw URL.",
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/appDiscovery"
         },
         "projects": {
-          "description": "Where this app records the projects a user has worked in.",
-          "type": "object",
-          "properties": {
-            "historyFile": {
-              "description": "A history file inside the app home.",
-              "type": "string"
-            },
-            "sessionDb": {
-              "description": "Session databases to try in order, absolute or relative to the app home.",
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "markerFile": {
-              "description": "The file the app writes inside a project's git directory to record the project id.",
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/appProjects"
         },
         "modelCatalog": {
-          "description": "The app config file a model catalog is merged into.",
-          "type": "object",
-          "properties": {
-            "files": {
-              "description": "Files to try in order, relative to the app home.",
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "envOverride": {
-              "description": "Environment variable naming the config file outright.",
-              "type": "string"
-            },
-            "schemaUrl": {
-              "description": "The app's config schema, for an editor's completion.",
-              "type": "string"
-            },
-            "providerKey": {
-              "description": "The key inside that file holding the catalog, named after the app's own config key.",
-              "type": "string"
-            }
-          },
-          "required": [
-            "files",
-            "providerKey"
-          ]
+          "$ref": "#/definitions/appModelCatalog"
         }
       },
       "required": [
         "id",
         "label",
         "home"
+      ]
+    },
+    "appDescriptor": {
+      "description": "One app a host loads plugins into, as a reader answers it: the app's declaration with every default it omits filled in.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "The app's permanent id, for example claude or opencode.",
+          "type": "string"
+        },
+        "label": {
+          "description": "The name a surface shows instead of the id.",
+          "type": "string"
+        },
+        "icon": {
+          "description": "Self-contained SVG mark for the app, rendered by dashboards. Data, not code.",
+          "type": "string"
+        },
+        "home": {
+          "$ref": "#/definitions/appHome"
+        },
+        "detect": {
+          "$ref": "#/definitions/appDetect"
+        },
+        "loader": {
+          "$ref": "#/definitions/appLoader"
+        },
+        "commandsSubdir": {
+          "description": "The subdirectory inside the app home holding its slash commands.",
+          "type": "string"
+        },
+        "paths": {
+          "$ref": "#/definitions/appPathNames"
+        },
+        "proxyPort": {
+          "description": "The port this app's proxy listens on, or 0 when it needs none.",
+          "type": "integer"
+        },
+        "integration": {
+          "description": "How this app reaches the local API.",
+          "type": "string",
+          "enum": [
+            "env-baseurl",
+            "native"
+          ],
+          "fix": "set \"integration\" to \"env-baseurl\" when the app is pointed at the proxy by an environment variable, or \"native\" when it loads the plugin itself"
+        },
+        "wireFormat": {
+          "description": "The wire format this app speaks, for example anthropic.",
+          "type": "string"
+        },
+        "usage": {
+          "$ref": "#/definitions/appUsage"
+        },
+        "accent": {
+          "description": "Accent colour for this app's surfaces, as a #rrggbb hex string.",
+          "type": "string"
+        },
+        "wrapperCommand": {
+          "description": "The command a user types to launch this app through its loader's wrapper.",
+          "type": "string"
+        },
+        "npmPlugins": {
+          "$ref": "#/definitions/appNpmPlugins"
+        },
+        "startupHook": {
+          "$ref": "#/definitions/appStartupHook"
+        },
+        "discovery": {
+          "$ref": "#/definitions/appDiscovery"
+        },
+        "projects": {
+          "$ref": "#/definitions/appProjects"
+        },
+        "modelCatalog": {
+          "$ref": "#/definitions/appModelCatalog"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "home",
+        "detect",
+        "commandsSubdir",
+        "proxyPort",
+        "integration",
+        "wireFormat"
+      ]
+    },
+    "appDetect": {
+      "description": "How to tell whether this app is installed.",
+      "type": "object",
+      "properties": {
+        "binary": {
+          "description": "The executable a user launches, looked up on the path.",
+          "type": "string"
+        },
+        "pkg": {
+          "description": "The npm package the app ships as, for a global-install check.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "binary",
+        "pkg"
+      ]
+    },
+    "appDiscovery": {
+      "description": "Where a marketplace looks for this app's community plugins.",
+      "type": "object",
+      "properties": {
+        "topic": {
+          "description": "The repository topic a community plugin carries.",
+          "type": "string"
+        },
+        "searchQuery": {
+          "description": "A free-text search to run where the topic alone under-reports.",
+          "type": "string"
+        },
+        "awesomeList": {
+          "description": "A curated list to read, as a raw URL.",
+          "type": "string"
+        }
+      }
+    },
+    "appHome": {
+      "description": "Where this app keeps its home directory, in the order a resolver tries.",
+      "type": "object",
+      "properties": {
+        "envOverride": {
+          "description": "Environment variable that overrides every candidate, set by a host driving this app.",
+          "type": "string"
+        },
+        "nativeEnv": {
+          "description": "The app's OWN environment variable for its config directory, which it reads itself.",
+          "type": "string"
+        },
+        "xdgSubdir": {
+          "description": "Subdirectory under the XDG config directory, when the app follows that layout.",
+          "type": "string"
+        },
+        "candidates": {
+          "description": "Paths to try in order, each with a leading ~ for the user home.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "candidates"
+      ]
+    },
+    "appLoader": {
+      "description": "The plugin this app is reached through. Absent means the app has no loader.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "The loader plugin's id.",
+          "type": "string"
+        },
+        "url": {
+          "description": "Where the loader is cloned from, as owner/repo or a full URL.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "url"
+      ]
+    },
+    "appModelCatalog": {
+      "description": "The app config file a model catalog is merged into.",
+      "type": "object",
+      "properties": {
+        "files": {
+          "description": "Files to try in order, relative to the app home.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "envOverride": {
+          "description": "Environment variable naming the config file outright.",
+          "type": "string"
+        },
+        "schemaUrl": {
+          "description": "The app's config schema, for an editor's completion.",
+          "type": "string"
+        },
+        "providerKey": {
+          "description": "The key inside that file holding the catalog, named after the app's own config key.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "files",
+        "providerKey"
+      ]
+    },
+    "appNpmPlugins": {
+      "description": "This app's own npm-plugin mechanism. Absent means it has none.",
+      "type": "object",
+      "properties": {
+        "configFiles": {
+          "description": "Config files to look in, in order, for the plugin list.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pluginsKey": {
+          "description": "The key inside those files holding the plugin list.",
+          "type": "string"
+        },
+        "packageCache": {
+          "description": "Where the app caches the packages it installed.",
+          "type": "string"
+        },
+        "schemaUrl": {
+          "description": "The app's config schema, for an editor's completion.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "configFiles",
+        "pluginsKey"
+      ]
+    },
+    "appPathNames": {
+      "description": "The names of the storage subdirectories inside this app's home.",
+      "type": "object",
+      "properties": {
+        "repos": {
+          "description": "Where plugin checkouts live.",
+          "type": "string"
+        },
+        "plugin": {
+          "description": "Where deployed plugin bundles and their manifest sidecars live.",
+          "type": "string"
+        },
+        "cache": {
+          "description": "Where cached downloads live.",
+          "type": "string"
+        },
+        "config": {
+          "description": "Where configuration files live.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "repos",
+        "plugin",
+        "cache",
+        "config"
+      ]
+    },
+    "appProjects": {
+      "description": "Where this app records the projects a user has worked in.",
+      "type": "object",
+      "properties": {
+        "historyFile": {
+          "description": "A history file inside the app home.",
+          "type": "string"
+        },
+        "sessionDb": {
+          "description": "Session databases to try in order, absolute or relative to the app home.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "markerFile": {
+          "description": "The file the app writes inside a project's git directory to record the project id.",
+          "type": "string"
+        }
+      }
+    },
+    "appStartupHook": {
+      "description": "How this app runs a plugin at startup when it has no npm-plugin list of its own.",
+      "type": "object",
+      "properties": {
+        "file": {
+          "description": "The file to write, relative to the app home.",
+          "type": "string"
+        },
+        "path": {
+          "description": "The key path to the array the entry joins.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "entry": {
+          "description": "A JSON template whose strings have the {plugin} placeholder replaced with the plugin's name."
+        }
+      },
+      "required": [
+        "file",
+        "path",
+        "entry"
+      ]
+    },
+    "appUsage": {
+      "description": "Session-storage formats this app writes, for usage readers.",
+      "type": "object",
+      "properties": {
+        "formats": {
+          "description": "Format ids, each of which a consumer maps to a parser of its own.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "formats"
       ]
     }
   }
