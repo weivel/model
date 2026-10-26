@@ -29,6 +29,12 @@ function echoWith(change: (declaration: any) => void) {
   return declaration;
 }
 
+function contextRefusals(context: unknown[]) {
+  const validate = compile();
+  expect(validate(echoWith((value) => (value.services[0].functions[0].context = context)))).toBe(false);
+  return (validate.errors ?? []).map(({ instancePath, keyword }) => ({ instancePath, keyword }));
+}
+
 describe("library.schema.json", () => {
   it("compiles as a strict draft-07 schema", () => {
     expect(() => compile()).not.toThrow();
@@ -67,5 +73,23 @@ describe("library.schema.json", () => {
 
   it("refuses an id that is not kebab case", () => {
     expect(compile()(echoWith((value) => (value.id = "Echo_Lib")))).toBe(false);
+  });
+
+  it("accepts a function that declares its context", () => {
+    const validate = compile();
+    expect(validate(echoWith((value) => (value.services[0].functions[0].context = ["environment", "home", "arguments"])))).toBe(true);
+    expect(validate(echoWith((value) => (value.services[0].functions[0].context = ["home"])))).toBe(true);
+  });
+
+  it("refuses an unknown context fact", () => {
+    expect(contextRefusals(["cwd"])).toEqual([{ instancePath: "/services/0/functions/0/context/0", keyword: "enum" }]);
+  });
+
+  it("refuses a repeated context fact", () => {
+    expect(contextRefusals(["home", "home"])).toEqual([{ instancePath: "/services/0/functions/0/context", keyword: "uniqueItems" }]);
+  });
+
+  it("refuses an empty context", () => {
+    expect(contextRefusals([])).toEqual([{ instancePath: "/services/0/functions/0/context", keyword: "minItems" }]);
   });
 });

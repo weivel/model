@@ -79,6 +79,14 @@
                 "result": {
                   "description": "A JSON Schema the call's result satisfies.",
                   "anyOf": [{ "type": "object" }, { "type": "boolean" }]
+                },
+                "context": {
+                  "description": "The facts of the calling process this function reads, which the host sends beside the argument. Absent means the function reads none and receives the argument alone.",
+                  "type": "array",
+                  "items": { "type": "string", "enum": ["environment", "home", "arguments"] },
+                  "uniqueItems": true,
+                  "minItems": 1,
+                  "fix": "list the facts the function reads, each once, from \"environment\", \"home\" and \"arguments\", or remove \"context\""
                 }
               },
               "required": ["name", "symbol", "kind", "argument", "result"],

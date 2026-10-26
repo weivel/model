@@ -16,7 +16,30 @@ its own tests.
 - `library.schema.json`: the schema, as draft-07, that a C library's `library.json` is written against,
   published at `https://weivel.github.io/model/library.schema.json`. It names the binary to load, the
   symbol that frees a returned buffer, and the services whose JSON functions plugins call; both
-  implementations load a declaration and validate it against this file.
+  implementations load a declaration and validate it against this file. A function may declare
+  `context`, the facts of the calling process it reads (any of `environment`, `home` and
+  `arguments`), which the host then sends beside the argument.
+- `plugin.schema.json`'s `definitions`, each named so a library declaration's `$ref` to it maps to
+  the contract type of the same name, except `appDeclaration`, which has none:
+  - `appDeclaration`: an app as a manifest's `app` declares it, carrying only what the app's
+    project knows.
+  - `appDescriptor`: an app as a reader resolves it, the declaration with every default it omits
+    filled in, which is the contract's `AppDescriptor`.
+  - `appHome`: where an app keeps its home directory, one shape in a declaration and resolved.
+  - `appDetect`: how to tell whether an app is installed, resolved, so both fields are present.
+  - `appLoader`: the plugin an app is reached through, one shape in a declaration and resolved.
+  - `appPathNames`: the names of an app home's storage subdirectories, resolved, so all four are
+    present.
+  - `appUsage`: the session-storage formats an app writes, one shape in a declaration and resolved.
+  - `appNpmPlugins`: an app's own npm-plugin mechanism, one shape in a declaration and resolved.
+  - `appStartupHook`: how an app runs a plugin at startup, resolved, so its entry template may be
+    any JSON value where a declaration requires an object.
+  - `appDiscovery`: where a marketplace looks for an app's community plugins, one shape in a
+    declaration and resolved.
+  - `appProjects`: where an app records the projects a user worked in, one shape in a declaration
+    and resolved.
+  - `appModelCatalog`: the app config file a model catalog is merged into, one shape in a
+    declaration and resolved.
 - `INVARIANTS.md`: what an implementation does with a manifest, each with the reason it exists.
   Binding specifications render them per language and the conformance suite tests them.
 - `VALIDATION.md`: the two rules a validator applies after the schema, because draft-07 cannot
