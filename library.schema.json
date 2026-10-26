@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://weivel.github.io/model/library.schema.json",
+  "title": "weivel library declaration",
+  "description": "The machine-readable description of a C library: the binary to load and the services its functions offer to plugins.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "description": "Pointer at the published declaration schema, for an editor's completion and validation.",
+      "type": "string"
+    },
+    "id": {
+      "description": "The library's permanent identity, matching its repository name.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "fix": "use lowercase words joined by single hyphens, for example \"echo\""
+    },
+    "version": {
+      "description": "The library's own version.",
+      "type": "string",
+      "minLength": 1,
+      "fix": "set \"version\" to the library's version, for example \"0.1.0\""
+    },
+    "binary": {
+      "description": "The shared library's base name, without a platform prefix or extension.",
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+      "fix": "use a C identifier for the binary's base name, for example \"echo\""
+    },
+    "release": {
+      "description": "The exported symbol that frees a buffer the library returned.",
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+      "fix": "name the exported release function as a C identifier, for example \"echo_release\""
+    },
+    "services": {
+      "description": "The services this library offers to plugins.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "description": "One service and the functions it exposes.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "The service id plugins request.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "fix": "use lowercase words joined by single hyphens, for example \"echo\""
+          },
+          "functions": {
+            "description": "The functions of this service.",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "description": "One exported function, called with and answering JSON.",
+              "type": "object",
+              "properties": {
+                "name": {
+                  "description": "The name a plugin calls the function by.",
+                  "type": "string",
+                  "pattern": "^[a-z][A-Za-z0-9]*$",
+                  "fix": "start \"name\" with a lowercase letter and use letters and digits only, for example \"repeat\""
+                },
+                "symbol": {
+                  "description": "The exported C symbol that implements the function.",
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                  "fix": "use a C identifier for the exported symbol, for example \"echo_repeat\""
+                },
+                "kind": {
+                  "description": "How the function is called: JSON in, JSON out.",
+                  "enum": ["json"],
+                  "fix": "set \"kind\" to \"json\", the only kind there is"
+                },
+                "argument": {
+                  "description": "A JSON Schema the call's argument must satisfy.",
+                  "anyOf": [{ "type": "object" }, { "type": "boolean" }]
+                },
+                "result": {
+                  "description": "A JSON Schema the call's result satisfies.",
+                  "anyOf": [{ "type": "object" }, { "type": "boolean" }]
+                }
+              },
+              "required": ["name", "symbol", "kind", "argument", "result"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["id", "functions"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["id", "version", "binary", "release", "services"],
+  "additionalProperties": false
+}

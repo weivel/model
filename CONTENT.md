@@ -13,6 +13,10 @@ its own tests.
 
 - `plugin.schema.json`: the schema, as draft-07, published at
   `https://weivel.github.io/model/plugin.schema.json`, which is also its `$id`.
+- `library.schema.json`: the schema, as draft-07, that a C library's `library.json` is written against,
+  published at `https://weivel.github.io/model/library.schema.json`. It names the binary to load, the
+  symbol that frees a returned buffer, and the services whose JSON functions plugins call; both
+  implementations load a declaration and validate it against this file.
 - `INVARIANTS.md`: what an implementation does with a manifest, each with the reason it exists.
   Binding specifications render them per language and the conformance suite tests them.
 - `VALIDATION.md`: the two rules a validator applies after the schema, because draft-07 cannot
