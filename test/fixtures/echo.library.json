@@ -1,0 +1,29 @@
+{
+  "$schema": "https://weivel.github.io/model/library.schema.json",
+  "id": "echo",
+  "version": "0.1.0",
+  "binary": "echo",
+  "release": "echo_release",
+  "services": [
+    {
+      "id": "echo",
+      "functions": [
+        { "name": "echo", "symbol": "echo_echo", "kind": "json", "argument": {}, "result": {} },
+        { "name": "fail", "symbol": "echo_fail", "kind": "json", "argument": { "type": "object" }, "result": { "type": "object" } },
+        {
+          "name": "repeat",
+          "symbol": "echo_repeat",
+          "kind": "json",
+          "argument": {
+            "type": "object",
+            "properties": { "count": { "type": "integer", "minimum": 0 } },
+            "required": ["count"],
+            "additionalProperties": false
+          },
+          "result": { "type": "string" }
+        },
+        { "name": "garbage", "symbol": "echo_garbage", "kind": "json", "argument": { "type": "object" }, "result": { "type": "string" } }
+      ]
+    }
+  ]
+}
