@@ -45,6 +45,7 @@ render it away.
     nothing else, host services included. Anything else is refused as data under invariant 1: `get`
     returns nothing, `want` is rejected, `watch` is inert, and the host reports the refusal once per
     plugin and id with a fix naming `services.consumes`, so a refusal never reads as absence. A
-    declared id that nothing provides is absence, not a refusal, and `ids` lists only what that
-    consumer may reach. Without it a manifest's `consumes` is a comment, and the dependency graph a
-    host orders and revokes by is not the one its plugins actually use.
+    declared id that nothing provides is absence, not a refusal, and `ids` lists only the ids that
+    are registered and that consumer may reach, so a declared id nothing provides is not listed.
+    Without it a manifest's `consumes` is a comment, and the dependency graph a host orders and
+    revokes by is not the one its plugins actually use.
