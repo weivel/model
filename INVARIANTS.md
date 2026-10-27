@@ -40,3 +40,15 @@ render it away.
 11. **Per-consumer scoping is contract, not optimisation.** A consumer's view of the registry is
     bound to that consumer, so its registrations and consumptions are attributable and revoking them
     is one operation.
+12. **A consumer reaches only the services it declared.** `get`, `want` and `watch` answer for an id
+    the plugin lists under `services.consumes` or offers itself under `services.provides`, and for
+    nothing else, host services included. Anything else is refused as data under invariant 1: `get`
+    returns nothing, `want` is rejected, `watch` is inert, and the host reports the refusal once per
+    plugin and id with a fix naming `services.consumes`, so a refusal never reads as absence. A
+    declared id that nothing provides is absence, not a refusal, and `ids` lists only the ids that
+    are registered and that consumer may reach, so a declared id nothing provides is not listed.
+    The declaration check runs before the check for a plugin that is no longer running, for `get`,
+    `want` and `watch` alike: an undeclared call from such a plugin is refused and reported as
+    undeclared, and only a declared one takes the late path. `ids` ignores lateness.
+    Without it a manifest's `consumes` is a comment, and the dependency graph a host orders and
+    revokes by is not the one its plugins actually use.

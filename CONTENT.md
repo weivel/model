@@ -2,7 +2,7 @@
 
 The plugin model: `plugin.schema.json`, the one schema every `plugin.json` is written against and
 every implementation validates against, whichever application the plugin targets, and
-`INVARIANTS.md`, the eleven properties every implementation holds whatever its language.
+`INVARIANTS.md`, the twelve properties every implementation holds whatever its language.
 
 **It lives outside every implementation on purpose.** An implementation that holds the vocabulary
 defines it, and every other language then reads that implementation's output rather than a neutral
