@@ -47,5 +47,8 @@ render it away.
     plugin and id with a fix naming `services.consumes`, so a refusal never reads as absence. A
     declared id that nothing provides is absence, not a refusal, and `ids` lists only the ids that
     are registered and that consumer may reach, so a declared id nothing provides is not listed.
+    The declaration check runs before the check for a plugin that is no longer running, for `get`,
+    `want` and `watch` alike: an undeclared call from such a plugin is refused and reported as
+    undeclared, and only a declared one takes the late path. `ids` ignores lateness.
     Without it a manifest's `consumes` is a comment, and the dependency graph a host orders and
     revokes by is not the one its plugins actually use.
