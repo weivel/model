@@ -43,10 +43,11 @@ is not a crash: an absent `settings` or `actions` is an empty set, so a `field` 
 reference then names nothing and is refused. An absent `services` or `services.provides` is likewise
 an empty set, so every binding is refused.
 
-- **A node `id` is unique within its view.** An `id` repeated in one view is refused at the later
-  node. Fix: `give each node in a view its own id`. Path: `views.<view>.nodes[<i>].id`.
-- **A `parent` names an EARLIER node of the same view.** A `parent` that names a later node, the node
-  itself, or no node at all is refused. This is what guarantees the flat node list is a tree with no
+- **A node `id` is unique within its view.** Every node after the first that carries a given
+  `id` is reported, the second, third and later occurrences, each at its own `.id` path. Fix: `give each node in a view its own id`. Path: `views.<view>.nodes[<i>].id`.
+- **A `parent` names an EARLIER node of the same view.** A `parent` resolves when ANY node at a
+  lower index in the same view carries that id, so a duplicated id with one earlier occurrence
+  resolves. A `parent` that names the node itself, only later nodes, or no node at all is refused. This is what guarantees the flat node list is a tree with no
   cycle. Fix: `name the id of a node listed before this one`. Path: `views.<view>.nodes[<i>].parent`.
 - **An `action` names a key of `actions`.** Fix: `name one of this manifest's actions`. Path:
   `views.<view>.nodes[<i>].action`.
@@ -61,6 +62,7 @@ an empty set, so every binding is refused.
 - **Why it is not in the schema:** each check compares one part of the manifest with another (a
   node with its siblings, a node with the keys of `settings`, a binding with `services.provides`),
   and draft-07 cannot refer from one value to the keys or entries of another.
-- **Order:** issues are reported in manifest order: actions first, then views in key order, nodes in
-  list order.
+- **Order:** actions in key order first, then views in key order, nodes by index. Key order is the
+  order the keys appear in the manifest document. Within one node the order is `id`, `parent`,
+  `action`, `field`, `bind`. Within one action only `call.service` can be reported.
 - **Refusal:** the path named beside each check, with the fix beside it.
