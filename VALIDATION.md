@@ -39,7 +39,9 @@ The schema types `parent`, `action`, `field` and a binding's `service` as plain 
 which strings are legal depends on the rest of the manifest. Resolving them is this rule's job. It
 applies to `views` and `actions` and is checked only when the schema passed, so every path below
 exists and has the shape the schema gave it. A manifest with `views` and no `settings` or `actions`
-is not a crash: a `field` or `action` reference then names nothing and is refused.
+is not a crash: an absent `settings` or `actions` is an empty set, so a `field` or `action`
+reference then names nothing and is refused. An absent `services` or `services.provides` is likewise
+an empty set, so every binding is refused.
 
 - **A node `id` is unique within its view.** An `id` repeated in one view is refused at the later
   node. Fix: `give each node in a view its own id`. Path: `views.<view>.nodes[<i>].id`.
