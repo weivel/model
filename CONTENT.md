@@ -19,6 +19,14 @@ its own tests.
   implementations load a declaration and validate it against this file. A function may declare
   `context`, the facts of the calling process it reads (any of `environment`, `home` and
   `arguments`), which the host then sends beside the argument.
+- Fields a host or a listing declares about how it is installed, all optional:
+  - `kind`: `plugin` or `host`, absent meaning `plugin`. A loader is a host.
+  - `packages`: the package under each install method, `{ "<method>": "<name>" | { "name", "options"? } }`.
+  - `methods`: the install method ids the listing supports.
+  - `installMethod`: the one method a listing is a provider for, when it is an `install-method`
+    provider (below). A catalog and an install planner match a provider by exactly this field.
+  - `pathCommands`: `{ "requested": [string], "minimum": 0 | 1 }`, the executables a host puts on the
+    user's PATH. Not `commands`, which stays the array of in-application slash commands.
 - `plugin.schema.json`'s `definitions`, each named so a library declaration's `$ref` to it maps to
   the contract type of the same name, except `appDeclaration`, which has none:
   - `appDeclaration`: an app as a manifest's `app` declares it, carrying only what the app's
@@ -55,3 +63,23 @@ repository beside itself and fails its build while its validator disagrees with 
 
 The schema is open: a field it does not name validates and is ignored, which is what lets a manifest
 written for a newer host load on an older one.
+
+## The `install-method` service
+
+The contract every package-manager provider (npm, Homebrew, winget, apt, and any other) implements,
+registered as the service id `install-method` by a listing whose manifest names the method it serves
+in `installMethod`. A provider holds no list of packages: which package an item is under a method is
+the item's `packages` data, so a new package never needs a new provider.
+
+Strings and JSON only, so a provider written in any language, or reached over a wire protocol, can
+implement it. A package is the method's own name for it (`"@scope/tool"`, `"git"`), and `options` is
+the optional object a `packages` entry carried, which only that provider reads.
+
+- `detect(package, options?)` answers `{ "installed": boolean, "version"?: string }`. A package that is
+  not installed is `installed: false`, not a refusal.
+- `install(package, options?)`, `update(package, options?)` and `remove(package, options?)` each answer
+  success, or a refusal carrying a detail and a fix.
+
+A refusal is data, not an exception (invariant 1): an unreachable registry, a missing privilege or an
+unknown package comes back as a refusal value the caller shows, never as a thrown error. Every
+operation is idempotent: installing what is installed, or removing what is absent, succeeds.

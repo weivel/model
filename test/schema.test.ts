@@ -102,3 +102,59 @@ describe("plugin.schema.json", () => {
     expect(validate.errors?.map((error) => error.params)).toContainEqual({ missingProperty: "commandsSubdir" });
   });
 });
+
+describe("a host's declarations", () => {
+  const host = {
+    id: "claude-code",
+    api: 1,
+    kind: "host",
+    installMethod: "npm",
+    packages: { npm: "@anthropic-ai/claude-code", homebrew: { name: "claude-code", options: { tap: "acme/tools" } } },
+    pathCommands: { requested: ["cc", "claude"], minimum: 1 },
+    methods: ["npm", "homebrew"],
+  };
+
+  it("accepts a host with packages, path commands and methods", () => {
+    expect(compile()(host)).toBe(true);
+  });
+
+  it("accepts a plugin that names no kind, and the two kinds", () => {
+    const validate = compile();
+    expect(validate({ id: "a", api: 1 })).toBe(true);
+    expect(validate({ id: "a", api: 1, kind: "plugin" })).toBe(true);
+    expect(validate({ id: "a", api: 1, kind: "loader" })).toBe(false);
+  });
+
+  it("refuses a package entry of an unknown shape, with a fix", () => {
+    const validate = compile();
+    for (const entry of [42, ["npm-name"], { options: {} }, { name: 7 }, { name: "x", options: "y" }]) {
+      expect(validate({ id: "a", api: 1, packages: { npm: entry } }), JSON.stringify(entry)).toBe(false);
+    }
+    expect(JSON.stringify(schema.properties.packages.fix)).toContain("name");
+  });
+
+  it("refuses path commands that are malformed", () => {
+    const validate = compile();
+    expect(validate({ id: "a", api: 1, pathCommands: { requested: ["cc"], minimum: 2 } })).toBe(false);
+    expect(validate({ id: "a", api: 1, pathCommands: { requested: ["cc"], minimum: -1 } })).toBe(false);
+    expect(validate({ id: "a", api: 1, pathCommands: { requested: "cc", minimum: 0 } })).toBe(false);
+    expect(validate({ id: "a", api: 1, pathCommands: { minimum: 0 } })).toBe(false);
+    expect(validate({ id: "a", api: 1, pathCommands: { requested: ["cc"] } })).toBe(true);
+  });
+
+  it("refuses methods that are not unique strings", () => {
+    const validate = compile();
+    expect(validate({ id: "a", api: 1, methods: ["npm", "npm"] })).toBe(false);
+    expect(validate({ id: "a", api: 1, methods: [1] })).toBe(false);
+  });
+
+  it("keeps the in-application slash commands as they were", () => {
+    const validate = compile();
+    expect(validate({ id: "a", api: 1, commands: [{ name: "x", description: "y" }] })).toBe(true);
+    expect(validate({ id: "a", api: 1, commands: { requested: ["cc"], minimum: 1 } })).toBe(false);
+  });
+
+  it("ignores a field it does not name", () => {
+    expect(compile()({ ...host, somethingNewer: { any: "thing" } })).toBe(true);
+  });
+});
