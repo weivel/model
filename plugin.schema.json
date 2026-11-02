@@ -114,7 +114,9 @@
           "description": "The command names this host asks for, which a name already held may turn into a fallback.",
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "fix": "name each command as one portable file name: a letter or digit, then letters, digits, \".\", \"_\" or \"-\", at most 64 characters"
           },
           "uniqueItems": true
         },

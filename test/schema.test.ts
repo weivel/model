@@ -142,6 +142,17 @@ describe("a host's declarations", () => {
     expect(validate({ id: "a", api: 1, pathCommands: { requested: ["cc"] } })).toBe(true);
   });
 
+  it("takes a path command name only when it is one portable file name", () => {
+    const validate = compile();
+    const longest = "a".repeat(64);
+    for (const name of ["cc", "C9", "open-code", "my_tool.v2", longest]) {
+      expect(validate({ id: "a", api: 1, pathCommands: { requested: [name] } }), name).toBe(true);
+    }
+    for (const name of ["", "-cc", ".cc", "_cc", "../escape", "a/b", "a b", "naïve", `${longest}a`]) {
+      expect(validate({ id: "a", api: 1, pathCommands: { requested: [name] } }), name).toBe(false);
+    }
+  });
+
   it("refuses methods that are not unique strings", () => {
     const validate = compile();
     expect(validate({ id: "a", api: 1, methods: ["npm", "npm"] })).toBe(false);

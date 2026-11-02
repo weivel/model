@@ -26,7 +26,9 @@ its own tests.
   - `installMethod`: the one method a listing is a provider for, when it is an `install-method`
     provider (below). A catalog and an install planner match a provider by exactly this field.
   - `pathCommands`: `{ "requested": [string], "minimum": 0 | 1 }`, the executables a host puts on the
-    user's PATH. Not `commands`, which stays the array of in-application slash commands.
+    user's PATH, each name one portable file name (`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`, the rule
+    the runtime's `commands` service applies). Not `commands`, which stays the array of
+    in-application slash commands.
 - `plugin.schema.json`'s `definitions`, each named so a library declaration's `$ref` to it maps to
   the contract type of the same name, except `appDeclaration`, which has none:
   - `appDeclaration`: an app as a manifest's `app` declares it, carrying only what the app's
