@@ -9,7 +9,6 @@ const schema = JSON.parse(readFileSync(fileURLToPath(new URL("../install-method.
 
 function validatorFor(definition: string) {
   const ajv = new Ajv({ strict: true, allErrors: true });
-  ajv.addKeyword({ keyword: "fix", schemaType: "string" });
   ajv.addSchema(schema);
   return ajv.compile({ $ref: `${SCHEMA_URL}#/definitions/${definition}` });
 }
@@ -35,6 +34,16 @@ describe("install-method.schema.json", () => {
     const validate = validatorFor("operationAnswer");
     expect(validate({ ok: true })).toBe(true);
     expect(validate({ ok: false, detail: "x", fix: "y" })).toBe(true);
+  });
+
+  it("leaves the answers open to unknown keys", () => {
+    expect(validatorFor("operationAnswer")({ ok: true, detail: "x" })).toBe(true);
+    expect(validatorFor("detectAnswer")({ installed: true, extra: 1 })).toBe(true);
+  });
+
+  it("refuses answers of the wrong type", () => {
+    expect(validatorFor("detectAnswer")({ installed: "yes" })).toBe(false);
+    expect(validatorFor("operationAnswer")({ ok: "true" })).toBe(false);
   });
 
   it("refuses a refusal without its detail or fix", () => {

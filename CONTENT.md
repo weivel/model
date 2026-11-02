@@ -94,8 +94,9 @@ in `installMethod`. A provider holds no list of packages: which package an item 
 the item's `packages` data, so a new package never needs a new provider.
 
 The answers are described by `install-method.schema.json`. Strings and JSON only, so a provider
-written in any language, or reached over a wire protocol, can implement it. A package is the method's own name for it (`"@scope/tool"`, `"git"`), and `options` is
-the optional object a `packages` entry carried, which only that provider reads.
+written in any language, or reached over a wire protocol, can implement it. A package is the method's
+own name for it (`"@scope/tool"`, `"git"`), and `options` is the optional object a `packages` entry
+carried, which only that provider reads.
 
 - `detect(package, options?)` answers `{ "installed": boolean, "version"?: string }`. A package that is
   not installed is `installed: false`, not a refusal.
