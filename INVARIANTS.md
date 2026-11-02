@@ -60,6 +60,8 @@ render it away.
     `this host has no portable settings layer`, and nothing reaches the host's settings; a write to
     `"application"`, the default layer, is unaffected. `ctx.secrets`, with `get`, `set` and `delete`
     scoped to the plugin's id, is present only on a host with a secret store, independently of the
-    portable layer. An absent member is absent, never a stub that drops what it is handed.
+    portable layer. A secret's value is a UTF-8 string of at most 2,560,000 bytes, and names differing
+    only in case may name the same secret on some stores, so a plugin does not rely on case. An
+    absent member is absent, never a stub that drops what it is handed.
     A weivel host need not be a spisor host, and without the refusal a portable write on such a host
     would land silently in the application layer, where a plugin would never look for it again.
