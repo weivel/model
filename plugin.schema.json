@@ -60,6 +60,86 @@
       },
       "fix": "list the application ids this is built for, for example [\"forebay\"], or remove \"targets\" to mean every application"
     },
+    "kind": {
+      "description": "What this manifest describes. Absent means a plugin; a loader is a host.",
+      "type": "string",
+      "enum": [
+        "plugin",
+        "host"
+      ],
+      "fix": "set \"kind\" to \"plugin\" or \"host\", or remove it to mean a plugin"
+    },
+    "installMethod": {
+      "description": "The install method this listing is a provider for, for example npm. Absent means it provides none.",
+      "type": "string",
+      "minLength": 1,
+      "fix": "set \"installMethod\" to the id of the package manager this listing provides, for example \"npm\""
+    },
+    "packages": {
+      "description": "The package this item is under each install method, keyed by method id.",
+      "type": "object",
+      "additionalProperties": {
+        "description": "The package name under one method, or the name with that method's options.",
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "description": "A package name with the options its method takes, for example a registry or a tap.",
+            "type": "object",
+            "properties": {
+              "name": {
+                "description": "The package name under this method.",
+                "type": "string"
+              },
+              "options": {
+                "description": "Method-specific options, which only that method's provider reads.",
+                "type": "object"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        ],
+        "fix": "write the package as a name string, for example \"@scope/tool\", or an object carrying \"name\" and optionally \"options\""
+      },
+      "fix": "map each install method id to a package name string, or to an object carrying \"name\" and optionally \"options\", for example {\"npm\": \"@scope/tool\"}"
+    },
+    "pathCommands": {
+      "description": "The executables this host puts on the user's PATH, not the in-application slash commands, which are \"commands\".",
+      "type": "object",
+      "properties": {
+        "requested": {
+          "description": "The command names this host asks for, which a name already held may turn into a fallback.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "minimum": {
+          "description": "How many of its commands this host must keep: 1 means it cannot be left with none, 0 means it can. Absent means 0.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1,
+          "fix": "set \"minimum\" to 0 when the host works without a command on PATH, or 1 when it needs one"
+        }
+      },
+      "required": [
+        "requested"
+      ],
+      "fix": "declare the PATH commands as {\"requested\": [\"name\"], \"minimum\": 0 or 1}; slash commands go in \"commands\" instead"
+    },
+    "methods": {
+      "description": "The install methods this listing supports, by method id.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "fix": "list install method ids as strings, for example [\"npm\", \"homebrew\"]",
+      "uniqueItems": true
+    },
     "services": {
       "description": "The inter-plugin contract: what this plugin offers other plugins, and what it asks of them.",
       "type": "object",
