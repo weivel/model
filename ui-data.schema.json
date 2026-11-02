@@ -1,0 +1,133 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://weivel.github.io/model/ui-data.schema.json",
+  "title": "weivel ui binding answers",
+  "description": "What a view node's bind answers, one definition per bindable component. Each component refers to a family definition; none recurses.",
+  "definitions": {
+    "scalar": {
+      "description": "A string, number, boolean or null.",
+      "anyOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" },
+        { "type": "null" }
+      ]
+    },
+    "tone": {
+      "description": "A tone role, never a raw colour.",
+      "enum": ["neutral", "accent", "success", "warning", "danger"],
+      "fix": "set the tone to one of neutral, accent, success, warning or danger; a raw colour is not accepted"
+    },
+    "item": {
+      "description": "One row of an items answer. A tree is flat items linked by parent.",
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "state": {
+          "enum": ["installed", "detected", "available"],
+          "fix": "set the state to one of installed, detected or available"
+        },
+        "parent": { "type": "string" },
+        "values": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/scalar" }
+        },
+        "tone": { "$ref": "#/definitions/tone" }
+      }
+    },
+    "column": {
+      "type": "object",
+      "required": ["key", "label"],
+      "properties": {
+        "key": { "type": "string" },
+        "label": { "type": "string" },
+        "sortable": { "type": "boolean" }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "required": ["label", "value"],
+      "properties": {
+        "label": { "type": "string" },
+        "value": { "$ref": "#/definitions/scalar" }
+      }
+    },
+    "series": {
+      "type": "object",
+      "required": ["label", "points"],
+      "properties": {
+        "label": { "type": "string" },
+        "points": { "type": "array", "items": { "type": "number" } }
+      }
+    },
+    "itemsAnswer": {
+      "description": "The items family: list, table and tree. Sorting, filtering and selection belong to the renderer, over items.",
+      "type": "object",
+      "required": ["items"],
+      "properties": {
+        "items": { "type": "array", "items": { "$ref": "#/definitions/item" } },
+        "columns": { "type": "array", "items": { "$ref": "#/definitions/column" } }
+      }
+    },
+    "textAnswer": {
+      "description": "The text family: text, code, log and diff.",
+      "type": "object",
+      "required": ["text"],
+      "properties": {
+        "text": { "type": "string" }
+      }
+    },
+    "entriesAnswer": {
+      "description": "The entries family: detail.",
+      "type": "object",
+      "required": ["entries"],
+      "properties": {
+        "entries": { "type": "array", "items": { "$ref": "#/definitions/entry" } }
+      }
+    },
+    "measureAnswer": {
+      "description": "The measure family: progress, and the single-value branch of chart.",
+      "type": "object",
+      "required": ["value", "maximum"],
+      "properties": {
+        "value": { "type": "number" },
+        "maximum": { "type": "number" }
+      }
+    },
+    "chartAnswer": {
+      "description": "The chart family: series of points, or one value against a maximum.",
+      "anyOf": [
+        {
+          "type": "object",
+          "required": ["series"],
+          "properties": {
+            "series": { "type": "array", "items": { "$ref": "#/definitions/series" } }
+          }
+        },
+        { "$ref": "#/definitions/measureAnswer" }
+      ]
+    },
+    "badgeAnswer": {
+      "description": "The badge family.",
+      "type": "object",
+      "required": ["text"],
+      "properties": {
+        "text": { "type": "string" },
+        "tone": { "$ref": "#/definitions/tone" }
+      }
+    },
+    "list": { "$ref": "#/definitions/itemsAnswer" },
+    "table": { "$ref": "#/definitions/itemsAnswer" },
+    "tree": { "$ref": "#/definitions/itemsAnswer" },
+    "text": { "$ref": "#/definitions/textAnswer" },
+    "code": { "$ref": "#/definitions/textAnswer" },
+    "log": { "$ref": "#/definitions/textAnswer" },
+    "diff": { "$ref": "#/definitions/textAnswer" },
+    "detail": { "$ref": "#/definitions/entriesAnswer" },
+    "chart": { "$ref": "#/definitions/chartAnswer" },
+    "progress": { "$ref": "#/definitions/measureAnswer" },
+    "badge": { "$ref": "#/definitions/badgeAnswer" }
+  }
+}

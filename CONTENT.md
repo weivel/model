@@ -106,3 +106,27 @@ carried, which only that provider reads.
 A refusal is data, not an exception (invariant 1): an unreachable registry, a missing privilege or an
 unknown package comes back as a refusal value the caller shows, never as a thrown error. Every
 operation is idempotent: installing what is installed, or removing what is absent, succeeds.
+
+## What a binding answers
+
+A view node's `bind` names one of the plugin's services, and the answer is described by
+`ui-data.schema.json`, published at `https://weivel.github.io/model/ui-data.schema.json`. It has one
+definition per bindable component, each referring to a family definition, so a validator can inline
+them: no recursion, and no object is closed.
+
+| component | family | answer |
+| --- | --- | --- |
+| `list`, `table`, `tree` | items | `{ "items": [item], "columns"?: [{ "key", "label", "sortable"? }] }` |
+| `text`, `code`, `log`, `diff` | text | `{ "text": string }` |
+| `detail` | entries | `{ "entries": [{ "label", "value" }] }` |
+| `chart` | chart | `{ "series": [{ "label", "points": [number] }] }` or `{ "value", "maximum" }` |
+| `progress` | measure | `{ "value": number, "maximum": number }` |
+| `badge` | badge | `{ "text": string, "tone"? }` |
+
+An `item` is `{ "id", "label"?, "state"?, "parent"?, "values"?, "tone"? }` with `id` required. `state`
+is `installed`, `detected` or `available`; `values` maps a column key to a scalar (string, number,
+boolean or null); `tone` is a tone role. A tree is flat items linked by `parent`, as views are.
+
+Row actions: a node's `action` invoked from an item calls the action's binding with its `argument`
+merged with `{ "item": <id> }`, and invoked with a selection, `{ "items": [<id>] }`. Sorting,
+filtering and selection belong to the renderer, over `items`; a binding never receives them.
