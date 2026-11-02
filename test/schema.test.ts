@@ -125,6 +125,11 @@ describe("settings, actions and views", () => {
     ],
   };
   const manifest = (extra: object) => ({ id: "demo", api: 2, ...extra });
+  const refusals = (body: object) => {
+    const validate = compile();
+    validate(body);
+    return validate.errors ?? [];
+  };
   const withNode = (node: object) => manifest({ views: { v: { title: "V", nodes: [node] } } });
 
   it("accepts settings, actions and a view", () => {
@@ -137,11 +142,15 @@ describe("settings, actions and views", () => {
   });
 
   it("refuses a raw colour in tone", () => {
-    expect(compile()(withNode({ id: "a", component: "text", tone: "#ff0000" }))).toBe(false);
+    expect(refusals(withNode({ id: "a", component: "text", tone: "#ff0000" }))).toContainEqual(
+      expect.objectContaining({ keyword: "enum", instancePath: "/views/v/nodes/0/tone" }),
+    );
   });
 
   it("refuses a pixel size", () => {
-    expect(compile()(withNode({ id: "a", component: "text", size: "13px" }))).toBe(false);
+    expect(refusals(withNode({ id: "a", component: "text", size: "13px" }))).toContainEqual(
+      expect.objectContaining({ keyword: "enum", instancePath: "/views/v/nodes/0/size" }),
+    );
   });
 
   it("ignores an unknown node property", () => {
@@ -149,32 +158,53 @@ describe("settings, actions and views", () => {
   });
 
   it("requires choices for a choice setting", () => {
-    const validate = compile();
     for (const type of ["choice", "multi-choice"]) {
-      expect(validate(manifest({ settings: { m: { type, label: "M" } } })), type).toBe(false);
-      expect(validate(manifest({ settings: { m: { type, label: "M", choices: ["a"] } } })), type).toBe(true);
+      expect(refusals(manifest({ settings: { m: { type, label: "M" } } })), type).toContainEqual(
+        expect.objectContaining({ keyword: "required", instancePath: "/settings/m", params: { missingProperty: "choices" } }),
+      );
+      expect(refusals(manifest({ settings: { m: { type, label: "M", choices: ["a"] } } })), type).toEqual([]);
     }
   });
 
   it("refuses a view with no nodes", () => {
-    expect(compile()(manifest({ views: { v: { title: "V", nodes: [] } } }))).toBe(false);
+    expect(refusals(manifest({ views: { v: { title: "V", nodes: [] } } }))).toContainEqual(
+      expect.objectContaining({ keyword: "minItems", instancePath: "/views/v/nodes" }),
+    );
   });
 
   it("refuses each Windows reserved id", () => {
-    const validate = compile();
     for (const id of ["con", "prn", "aux", "nul", "com1", "com9", "lpt1", "lpt9"]) {
-      expect(validate({ id, api: 1 }), id).toBe(false);
+      expect(refusals({ id, api: 1 }), id).toContainEqual(expect.objectContaining({ keyword: "pattern", instancePath: "/id" }));
     }
     for (const id of ["con-tools", "console", "com10"]) {
-      expect(validate({ id, api: 1 }), id).toBe(true);
+      expect(refusals({ id, api: 1 }), id).toEqual([]);
     }
   });
 
   it("refuses a trailing newline in a setting key, view id and node id", () => {
-    const validate = compile();
-    expect(validate(manifest({ settings: { "name\n": settings.name } }))).toBe(false);
-    expect(validate(manifest({ views: { "v\n": view } }))).toBe(false);
-    expect(validate(withNode({ id: "a\n", component: "text" }))).toBe(false);
+    const keyPattern = (instancePath: string) => expect.objectContaining({ keyword: "pattern", instancePath });
+    expect(refusals(manifest({ settings: { "name\n": settings.name } }))).toContainEqual(keyPattern("/settings"));
+    expect(refusals(manifest({ views: { "v\n": view } }))).toContainEqual(keyPattern("/views"));
+    expect(refusals(withNode({ id: "a\n", component: "text" }))).toContainEqual(keyPattern("/views/v/nodes/0/id"));
+  });
+
+  it("refuses an unknown setting type", () => {
+    expect(refusals(manifest({ settings: { m: { type: "slider", label: "M" } } }))).toContainEqual(
+      expect.objectContaining({ keyword: "enum", instancePath: "/settings/m/type" }),
+    );
+  });
+
+  it("refuses a binding with no method", () => {
+    expect(refusals(withNode({ id: "a", component: "table", bind: { service: "demo:screens" } }))).toContainEqual(
+      expect.objectContaining({ keyword: "required", instancePath: "/views/v/nodes/0/bind", params: { missingProperty: "method" } }),
+    );
+  });
+
+  it("enforces the key pattern on an action's input keys", () => {
+    const action = { label: "Go", call: binding, input: { "Bad-Key": settings.name } };
+    expect(refusals(manifest({ actions: { go: action } }))).toContainEqual(
+      expect.objectContaining({ keyword: "pattern", instancePath: "/actions/go/input" }),
+    );
   });
 });
 
