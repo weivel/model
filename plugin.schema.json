@@ -664,7 +664,8 @@
           "properties": {
             "choices": {
               "type": "array",
-              "minItems": 1
+              "minItems": 1,
+              "fix": "a choice or multi-choice setting needs \"choices\", for example [\"fast\", \"safe\"]"
             }
           },
           "fix": "a choice or multi-choice setting needs \"choices\", for example [\"fast\", \"safe\"]"
