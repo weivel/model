@@ -19,6 +19,9 @@ its own tests.
   implementations load a declaration and validate it against this file. A function may declare
   `context`, the facts of the calling process it reads (any of `environment`, `home` and
   `arguments`), which the host then sends beside the argument.
+- `install-method.schema.json`: the schema, as draft-07, of the answers an `install-method` provider
+  returns, published at `https://weivel.github.io/model/install-method.schema.json`. Its definitions
+  are `detectAnswer` and `operationAnswer`.
 - Fields a host or a listing declares about how it is installed, all optional:
   - `kind`: `plugin` or `host`, absent meaning `plugin`. A loader is a host.
   - `packages`: the package under each install method, `{ "<method>": "<name>" | { "name", "options"? } }`.
@@ -90,8 +93,8 @@ registered as the service id `install-method` by a listing whose manifest names 
 in `installMethod`. A provider holds no list of packages: which package an item is under a method is
 the item's `packages` data, so a new package never needs a new provider.
 
-Strings and JSON only, so a provider written in any language, or reached over a wire protocol, can
-implement it. A package is the method's own name for it (`"@scope/tool"`, `"git"`), and `options` is
+The answers are described by `install-method.schema.json`. Strings and JSON only, so a provider
+written in any language, or reached over a wire protocol, can implement it. A package is the method's own name for it (`"@scope/tool"`, `"git"`), and `options` is
 the optional object a `packages` entry carried, which only that provider reads.
 
 - `detect(package, options?)` answers `{ "installed": boolean, "version"?: string }`. A package that is

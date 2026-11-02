@@ -8,6 +8,7 @@
   "files": [
     "plugin.schema.json",
     "library.schema.json",
+    "install-method.schema.json",
     "INVARIANTS.md",
     "VALIDATION.md"
   ],
