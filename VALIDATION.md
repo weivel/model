@@ -1,6 +1,6 @@
 # The rules a validator applies beyond the schema
 
-`plugin.schema.json` carries every rule draft-07 can express. These two cannot be expressed there, so
+`plugin.schema.json` carries every rule draft-07 can express. These three cannot be expressed there, so
 every implementation applies them after the schema passes, and the conformance kit's `validate`
 vectors hold each implementation to them. Like the schema, they are this repository's and no
 implementation's: an implementation that disagrees with them is the defect.
@@ -32,3 +32,33 @@ than socially discouraged.
   a list, and refuses every bare id.
 - **Refusal:** the path of the offending entry, for example `services.provides[0]`, with a fix that
   names the namespaced form, `<plugin id>:<name>`, and the host's well-known ids.
+
+## V3. Every reference in a description resolves
+
+The schema types `parent`, `action`, `field` and a binding's `service` as plain strings, because
+which strings are legal depends on the rest of the manifest. Resolving them is this rule's job. It
+applies to `views` and `actions` and is checked only when the schema passed, so every path below
+exists and has the shape the schema gave it. A manifest with `views` and no `settings` or `actions`
+is not a crash: a `field` or `action` reference then names nothing and is refused.
+
+- **A node `id` is unique within its view.** An `id` repeated in one view is refused at the later
+  node. Fix: `give each node in a view its own id`. Path: `views.<view>.nodes[<i>].id`.
+- **A `parent` names an EARLIER node of the same view.** A `parent` that names a later node, the node
+  itself, or no node at all is refused. This is what guarantees the flat node list is a tree with no
+  cycle. Fix: `name the id of a node listed before this one`. Path: `views.<view>.nodes[<i>].parent`.
+- **An `action` names a key of `actions`.** Fix: `name one of this manifest's actions`. Path:
+  `views.<view>.nodes[<i>].action`.
+- **A `field` names a key of `settings`.** Fix: `name one of this manifest's settings`. Path:
+  `views.<view>.nodes[<i>].field`.
+- **A binding's `service` is one this plugin provides.** This covers `actions.<a>.call` and a node's
+  `bind`. A service is in `services.provides` in either form (the string or the object carrying
+  `id`); a service the plugin only consumes does not count, because a host calls only into the
+  plugin's own services. Fix: `bind to a service this plugin provides`. Path:
+  `actions.<a>.call.service` or `views.<view>.nodes[<i>].bind.service`.
+
+- **Why it is not in the schema:** each check compares one part of the manifest with another (a
+  node with its siblings, a node with the keys of `settings`, a binding with `services.provides`),
+  and draft-07 cannot refer from one value to the keys or entries of another.
+- **Order:** issues are reported in manifest order: actions first, then views in key order, nodes in
+  list order.
+- **Refusal:** the path named beside each check, with the fix beside it.
