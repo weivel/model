@@ -66,6 +66,23 @@ repository beside itself and fails its build while its validator disagrees with 
 The schema is open: a field it does not name validates and is ignored, which is what lets a manifest
 written for a newer host load on an older one.
 
+## Settings, actions and views
+
+A plugin describes what a user can change, do and see as data, and a host draws it. The manifest
+never draws: it names roles, and each host maps a role to its own look.
+
+- `settings`: keyed by setting key, each `{ type, label, help?, default?, layer?, choices?, minimum?,
+  maximum?, pattern? }`. `choices` is required for `choice` and `multi-choice`.
+- `actions`: keyed by action id, each `{ label, call, confirm?, input?, tone? }`, where `call` is
+  `{ service, method, argument? }` into one of the plugin's own services.
+- `views`: keyed by view id, each `{ title, nodes }`. The nodes are a flat list and each names its
+  `parent`, because a flat list diffs, validates and streams without a recursive schema; a parent
+  must come earlier in the list, which keeps it a tree.
+- Every role property (`component`, `size`, `emphasis`, `tone`, `chart`) is an enum, so a raw colour
+  or a pixel size is refused. A property the schema does not name is ignored, as everywhere else.
+- Keys and ids start with a lowercase letter and continue with letters and digits. A plugin id may
+  not be a Windows reserved name (`con`, `prn`, `aux`, `nul`, `com1` to `com9`, `lpt1` to `lpt9`).
+
 ## The `install-method` service
 
 The contract every package-manager provider (npm, Homebrew, winget, apt, and any other) implements,

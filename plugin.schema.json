@@ -12,8 +12,8 @@
     "id": {
       "description": "The plugin's permanent identity, matching its repository name.",
       "type": "string",
-      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*(?![\\s\\S])",
-      "fix": "use lowercase words joined by single hyphens, for example \"config-ledger\""
+      "pattern": "^(?!(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?![\\s\\S]))[a-z0-9]+(-[a-z0-9]+)*(?![\\s\\S])",
+      "fix": "use lowercase words joined by single hyphens, for example \"config-ledger\", and not a Windows reserved name (con, prn, aux, nul, com1 to com9, lpt1 to lpt9)"
     },
     "api": {
       "description": "The lowest API major version this plugin needs. A floor, not a build tag.",
@@ -426,6 +426,79 @@
         "categories"
       ]
     },
+    "settings": {
+      "$ref": "#/definitions/uiSettings"
+    },
+    "actions": {
+      "description": "Operations a host offers the user for this plugin, each a call into one of its own services.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][A-Za-z0-9]*(?![\\s\\S])",
+        "fix": "start an action id with a lowercase letter, then letters and digits only, for example \"refresh\""
+      },
+      "additionalProperties": {
+        "description": "One action: what a host labels it and which service method it calls.",
+        "type": "object",
+        "properties": {
+          "label": {
+            "description": "The text a host shows on the control.",
+            "type": "string"
+          },
+          "call": {
+            "$ref": "#/definitions/uiBinding"
+          },
+          "confirm": {
+            "description": "A question a host asks before running the action. Absent means it runs at once.",
+            "type": "string"
+          },
+          "input": {
+            "$ref": "#/definitions/uiSettings"
+          },
+          "tone": {
+            "$ref": "#/definitions/uiTone"
+          }
+        },
+        "required": [
+          "label",
+          "call"
+        ],
+        "fix": "write the action as an object carrying \"label\" and \"call\", for example {\"label\": \"Refresh\", \"call\": {\"service\": \"demo:screens\", \"method\": \"refresh\"}}"
+      },
+      "fix": "map each action id to an object carrying \"label\" and \"call\""
+    },
+    "views": {
+      "description": "Screens a host draws for this plugin, each a flat list of nodes that name their parent.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][A-Za-z0-9]*(?![\\s\\S])",
+        "fix": "start a view id with a lowercase letter, then letters and digits only, for example \"screens\""
+      },
+      "additionalProperties": {
+        "description": "One view: a title and the nodes that make it up.",
+        "type": "object",
+        "properties": {
+          "title": {
+            "description": "The name a host shows for the view.",
+            "type": "string"
+          },
+          "nodes": {
+            "description": "The view's nodes as a flat list; a node's \"parent\" names the node it sits under, which must come earlier in the list.",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/definitions/uiNode"
+            },
+            "fix": "list at least one node, each an object carrying \"id\" and \"component\""
+          }
+        },
+        "required": [
+          "title",
+          "nodes"
+        ],
+        "fix": "write the view as an object carrying \"title\" and a non-empty \"nodes\" list"
+      },
+      "fix": "map each view id to an object carrying \"title\" and \"nodes\""
+    },
     "app": {
       "$ref": "#/definitions/appDeclaration"
     }
@@ -460,6 +533,270 @@
     }
   },
   "definitions": {
+    "uiTone": {
+      "description": "A semantic colour role; a host maps it to its own palette.",
+      "type": "string",
+      "enum": [
+        "neutral",
+        "accent",
+        "success",
+        "warning",
+        "danger"
+      ],
+      "fix": "set the tone to one of neutral, accent, success, warning or danger; a raw colour is not accepted"
+    },
+    "uiBinding": {
+      "description": "A call into one of this plugin's own services.",
+      "type": "object",
+      "properties": {
+        "service": {
+          "description": "The id of a service this plugin provides.",
+          "type": "string"
+        },
+        "method": {
+          "description": "The service method to call.",
+          "type": "string",
+          "pattern": "^[a-z][A-Za-z0-9]*(?![\\s\\S])",
+          "fix": "start a method name with a lowercase letter, then letters and digits only, for example \"read\""
+        },
+        "argument": {
+          "description": "The argument sent with the call.",
+          "type": "object"
+        }
+      },
+      "required": [
+        "service",
+        "method"
+      ],
+      "fix": "write the binding as {\"service\": \"<id>\", \"method\": \"<name>\"}, optionally with an \"argument\" object"
+    },
+    "uiSettings": {
+      "description": "Settings this plugin lets a user change, keyed by setting key.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][A-Za-z0-9]*(?![\\s\\S])",
+        "fix": "start a setting key with a lowercase letter, then letters and digits only, for example \"retryLimit\""
+      },
+      "additionalProperties": {
+        "description": "One setting: its type, its label and the limits a host enforces.",
+        "type": "object",
+        "properties": {
+          "type": {
+            "description": "How a host edits the value.",
+            "type": "string",
+            "enum": [
+              "text",
+              "secret",
+              "number",
+              "toggle",
+              "choice",
+              "multi-choice",
+              "path",
+              "list",
+              "key-value"
+            ],
+            "fix": "set the type to one of text, secret, number, toggle, choice, multi-choice, path, list or key-value"
+          },
+          "label": {
+            "description": "The text a host shows beside the control.",
+            "type": "string"
+          },
+          "help": {
+            "description": "A sentence a host shows under the control.",
+            "type": "string"
+          },
+          "default": {
+            "description": "The value in force until a user changes it."
+          },
+          "layer": {
+            "description": "Whether the value travels with the user (portable) or stays with this installation (application). Absent means portable.",
+            "type": "string",
+            "enum": [
+              "portable",
+              "application"
+            ],
+            "fix": "set the layer to portable or application"
+          },
+          "choices": {
+            "description": "The values a choice or multi-choice setting offers.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "fix": "list the allowed values as strings, for example [\"fast\", \"safe\"]"
+          },
+          "minimum": {
+            "description": "The lowest value a number setting accepts.",
+            "type": "integer"
+          },
+          "maximum": {
+            "description": "The highest value a number setting accepts.",
+            "type": "integer"
+          },
+          "pattern": {
+            "description": "A regular expression a text value must match.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "label"
+        ],
+        "if": {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "enum": [
+                "choice",
+                "multi-choice"
+              ]
+            }
+          }
+        },
+        "then": {
+          "type": "object",
+          "required": [
+            "choices"
+          ],
+          "properties": {
+            "choices": {
+              "type": "array",
+              "minItems": 1
+            }
+          },
+          "fix": "a choice or multi-choice setting needs \"choices\", for example [\"fast\", \"safe\"]"
+        },
+        "fix": "write the setting as an object carrying \"type\" and \"label\""
+      },
+      "fix": "map each setting key to an object carrying \"type\" and \"label\""
+    },
+    "uiNode": {
+      "description": "One element of a view. It names what it is and how it looks as roles, never as raw colours or sizes.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "The node's identity within its view.",
+          "type": "string",
+          "pattern": "^[a-z][A-Za-z0-9]*(?![\\s\\S])",
+          "fix": "start a node id with a lowercase letter, then letters and digits only, for example \"mainTable\""
+        },
+        "parent": {
+          "description": "The id of the node this one sits under. Absent means the view's root.",
+          "type": "string"
+        },
+        "component": {
+          "description": "What the node is.",
+          "type": "string",
+          "enum": [
+            "stack",
+            "grid",
+            "split",
+            "tabs",
+            "section",
+            "card",
+            "divider",
+            "text",
+            "list",
+            "table",
+            "tree",
+            "detail",
+            "chart",
+            "log",
+            "code",
+            "diff",
+            "badge",
+            "icon",
+            "field",
+            "search",
+            "form",
+            "button",
+            "dialog",
+            "toast",
+            "progress",
+            "spinner",
+            "empty",
+            "loading",
+            "error",
+            "unavailable"
+          ],
+          "fix": "set the component to one of stack, grid, split, tabs, section, card, divider, text, list, table, tree, detail, chart, log, code, diff, badge, icon, field, search, form, button, dialog, toast, progress, spinner, empty, loading, error or unavailable"
+        },
+        "size": {
+          "description": "The node's size as a role.",
+          "type": "string",
+          "enum": [
+            "small",
+            "medium",
+            "large"
+          ],
+          "fix": "set the size to small, medium or large; a pixel value is not accepted"
+        },
+        "emphasis": {
+          "description": "How much attention the node asks for.",
+          "type": "string",
+          "enum": [
+            "low",
+            "normal",
+            "high"
+          ],
+          "fix": "set the emphasis to low, normal or high"
+        },
+        "tone": {
+          "$ref": "#/definitions/uiTone"
+        },
+        "label": {
+          "description": "Text a host shows as the node's heading or caption.",
+          "type": "string"
+        },
+        "text": {
+          "description": "The node's own text.",
+          "type": "string"
+        },
+        "icon": {
+          "description": "The name of a host icon.",
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*(?![\\s\\S])",
+          "fix": "name the icon in lowercase words joined by single hyphens, for example \"arrow-right\""
+        },
+        "bind": {
+          "$ref": "#/definitions/uiBinding"
+        },
+        "action": {
+          "description": "The id of one of this plugin's actions the node runs.",
+          "type": "string"
+        },
+        "field": {
+          "description": "The key of one of this plugin's settings the node edits.",
+          "type": "string"
+        },
+        "chart": {
+          "description": "The chart form of a chart node.",
+          "type": "string",
+          "enum": [
+            "line",
+            "bar",
+            "sparkline",
+            "meter"
+          ],
+          "fix": "set the chart to line, bar, sparkline or meter"
+        },
+        "span": {
+          "description": "How many of a grid's twelve columns the node takes.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12,
+          "fix": "set the span to a whole number from 1 to 12"
+        }
+      },
+      "required": [
+        "id",
+        "component"
+      ],
+      "fix": "write the node as an object carrying \"id\" and \"component\""
+    },
     "appDeclaration": {
       "description": "The app this repo is the loader for, declared by the app's own project.",
       "type": "object",

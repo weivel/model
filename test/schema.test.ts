@@ -103,6 +103,81 @@ describe("plugin.schema.json", () => {
   });
 });
 
+describe("settings, actions and views", () => {
+  const binding = { service: "demo:screens", method: "read" };
+  const settings = {
+    name: { type: "text", label: "Name" },
+    token: { type: "secret", label: "Token" },
+    retries: { type: "number", label: "Retries", minimum: 0, maximum: 9 },
+    enabled: { type: "toggle", label: "Enabled", default: true },
+    mode: { type: "choice", label: "Mode", choices: ["a", "b"] },
+    modes: { type: "multi-choice", label: "Modes", choices: ["a", "b"], layer: "application" },
+    folder: { type: "path", label: "Folder", layer: "portable" },
+    names: { type: "list", label: "Names" },
+    labels: { type: "key-value", label: "Labels", help: "Pairs.", pattern: "^x" },
+  };
+  const view = {
+    title: "Screens",
+    nodes: [
+      { id: "main", component: "section", label: "Main", size: "large", emphasis: "high", tone: "accent" },
+      { id: "rows", parent: "main", component: "table", bind: binding, span: 12 },
+      { id: "go", parent: "main", component: "button", action: "refresh", icon: "arrow-right" },
+    ],
+  };
+  const manifest = (extra: object) => ({ id: "demo", api: 2, ...extra });
+  const withNode = (node: object) => manifest({ views: { v: { title: "V", nodes: [node] } } });
+
+  it("accepts settings, actions and a view", () => {
+    const body = manifest({
+      settings,
+      actions: { refresh: { label: "Refresh", call: binding, confirm: "Sure?", tone: "danger", input: { why: settings.name } } },
+      views: { screens: view },
+    });
+    expect(compile()(body)).toBe(true);
+  });
+
+  it("refuses a raw colour in tone", () => {
+    expect(compile()(withNode({ id: "a", component: "text", tone: "#ff0000" }))).toBe(false);
+  });
+
+  it("refuses a pixel size", () => {
+    expect(compile()(withNode({ id: "a", component: "text", size: "13px" }))).toBe(false);
+  });
+
+  it("ignores an unknown node property", () => {
+    expect(compile()(withNode({ id: "a", component: "text", color: "#f00" }))).toBe(true);
+  });
+
+  it("requires choices for a choice setting", () => {
+    const validate = compile();
+    for (const type of ["choice", "multi-choice"]) {
+      expect(validate(manifest({ settings: { m: { type, label: "M" } } })), type).toBe(false);
+      expect(validate(manifest({ settings: { m: { type, label: "M", choices: ["a"] } } })), type).toBe(true);
+    }
+  });
+
+  it("refuses a view with no nodes", () => {
+    expect(compile()(manifest({ views: { v: { title: "V", nodes: [] } } }))).toBe(false);
+  });
+
+  it("refuses each Windows reserved id", () => {
+    const validate = compile();
+    for (const id of ["con", "prn", "aux", "nul", "com1", "com9", "lpt1", "lpt9"]) {
+      expect(validate({ id, api: 1 }), id).toBe(false);
+    }
+    for (const id of ["con-tools", "console", "com10"]) {
+      expect(validate({ id, api: 1 }), id).toBe(true);
+    }
+  });
+
+  it("refuses a trailing newline in a setting key, view id and node id", () => {
+    const validate = compile();
+    expect(validate(manifest({ settings: { "name\n": settings.name } }))).toBe(false);
+    expect(validate(manifest({ views: { "v\n": view } }))).toBe(false);
+    expect(validate(withNode({ id: "a\n", component: "text" }))).toBe(false);
+  });
+});
+
 describe("a host's declarations", () => {
   const host = {
     id: "claude-code",
