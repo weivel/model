@@ -52,3 +52,14 @@ render it away.
     undeclared, and only a declared one takes the late path. `ids` ignores lateness.
     Without it a manifest's `consumes` is a comment, and the dependency graph a host orders and
     revokes by is not the one its plugins actually use.
+13. **A host offers the portable layer and the secret store or omits them, and never pretends.**
+    `ctx.paths.portable`, the plugin's folder in the user's portable home, is present only on a host
+    that has a portable settings layer, and its presence IS that layer: the portable settings file
+    lives inside that folder. On a host without it, `ctx.config.set(key, value, { layer: "portable" })`
+    is refused as data under invariant 1, rejecting with a failure whose detail is
+    `this host has no portable settings layer`, and nothing reaches the host's settings; a write to
+    `"application"`, the default layer, is unaffected. `ctx.secrets`, with `get`, `set` and `delete`
+    scoped to the plugin's id, is present only on a host with a secret store, independently of the
+    portable layer. An absent member is absent, never a stub that drops what it is handed.
+    A weivel host need not be a spisor host, and without the refusal a portable write on such a host
+    would land silently in the application layer, where a plugin would never look for it again.
