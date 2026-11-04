@@ -89,9 +89,11 @@ never draws: it names roles, and each host maps a role to its own look.
 ## The `install-method` service
 
 The contract every package-manager provider (npm, Homebrew, winget, apt, and any other) implements,
-registered as the service id `install-method` by a listing whose manifest names the method it serves
-in `installMethod`. A provider holds no list of packages: which package an item is under a method is
-the item's `packages` data, so a new package never needs a new provider.
+registered as the service id `<the provider's plugin id>:install-method` by a listing whose manifest
+names the method it serves in `installMethod`. The host finds a provider through that manifest member
+and looks up exactly that id. The id is namespaced because a bare service id has one holder, and many
+providers must coexist. A provider holds no list of packages: which package an item is under a
+method is the item's `packages` data, so a new package never needs a new provider.
 
 The answers are described by `install-method.schema.json`. Strings and JSON only, so a provider
 written in any language, or reached over a wire protocol, can implement it. A package is the method's
