@@ -51,47 +51,79 @@ describe("plugin.schema.json", () => {
 
   it("refuses capabilities without an entry", () => {
     const validate = compile();
-    expect(validate({ id: "a", api: 1, capabilities: ["provider"] })).toBe(false);
-    expect(validate({ id: "a", api: 1, capabilities: ["provider"], entry: "dist/index.js" })).toBe(true);
-    expect(validate({ id: "a", api: 1, capabilities: [] })).toBe(true);
+    expect(validate({ importName: "a", api: 1, capabilities: ["provider"] })).toBe(false);
+    expect(validate({ importName: "a", api: 1, capabilities: ["provider"], entry: "dist/index.js" })).toBe(true);
+    expect(validate({ importName: "a", api: 1, capabilities: [] })).toBe(true);
   });
 
   it("refuses an entry outside the repo", () => {
     const validate = compile();
     for (const entry of ["/abs/x.js", "\\abs\\x.js", "C:/x.js", "../x.js", "dist/../../x.js", "dist\\..\\x.js"]) {
-      expect(validate({ id: "a", api: 1, entry }), entry).toBe(false);
+      expect(validate({ importName: "a", api: 1, entry }), entry).toBe(false);
     }
     for (const entry of ["dist/index.js", "dist/..x/index.js"]) {
-      expect(validate({ id: "a", api: 1, entry }), entry).toBe(true);
+      expect(validate({ importName: "a", api: 1, entry }), entry).toBe(true);
     }
   });
 
   it("refuses an entry that hides an escape behind a line break or a control character", () => {
     const validate = compile();
     for (const entry of ["a\n/../../x.js", "a/..\n", "a\u0085/../x.js", "a\u2028/../x.js", "dist/index\u0000.js"]) {
-      expect(validate({ id: "a", api: 1, entry }), JSON.stringify(entry)).toBe(false);
+      expect(validate({ importName: "a", api: 1, entry }), JSON.stringify(entry)).toBe(false);
     }
   });
 
   it("refuses a duplicate capability or permission", () => {
     const validate = compile();
-    expect(validate({ id: "a", api: 1, entry: "dist/index.js", capabilities: ["a", "a"] })).toBe(false);
-    expect(validate({ id: "a", api: 1, permissions: ["net", "net"] })).toBe(false);
+    expect(validate({ importName: "a", api: 1, entry: "dist/index.js", capabilities: ["a", "a"] })).toBe(false);
+    expect(validate({ importName: "a", api: 1, permissions: ["net", "net"] })).toBe(false);
   });
 
   it("accepts a minimal manifest and refuses an id that is not kebab case", () => {
     const validate = compile();
-    expect(validate({ id: "config-ledger", api: 1 })).toBe(true);
-    expect(validate({ id: "Config_Ledger", api: 1 })).toBe(false);
+    expect(validate({ importName: "config-ledger", api: 1 })).toBe(true);
+    expect(validate({ importName: "Config_Ledger", api: 1 })).toBe(false);
+  });
+
+  it("requires an importName", () => {
+    const validate = compile();
+    expect(validate({ api: 1 })).toBe(false);
+    expect(validate.errors).toContainEqual(expect.objectContaining({ keyword: "required", params: { missingProperty: "importName" } }));
+  });
+
+  it("accepts a dotted importName", () => {
+    expect(compile()({ importName: "api.http", api: 1 })).toBe(true);
+  });
+
+  it("refuses an uppercase importName", () => {
+    expect(compile()({ importName: "Api", api: 1 })).toBe(false);
+  });
+
+  it("ignores a stated id", () => {
+    expect(compile()({ importName: "a", api: 2, id: "b" })).toBe(true);
+  });
+
+  const consumingProvider = (provider: string) => ({ importName: "a", api: 1, services: { consumes: [{ id: "x:y", provider }] } });
+
+  it("accepts a provider in the object form", () => {
+    expect(compile()(consumingProvider("github:123"))).toBe(true);
+  });
+
+  it("accepts a self-hosted provider", () => {
+    expect(compile()(consumingProvider("gitea@git.example.com:12/runtime"))).toBe(true);
+  });
+
+  it("refuses a provider that is not an id", () => {
+    expect(compile()(consumingProvider("calendar"))).toBe(false);
   });
 
   it("validates a manifest's app against appDeclaration", () => {
     expect(schema.properties.app).toEqual({ $ref: "#/definitions/appDeclaration" });
     const validate = compile();
     const declared = { id: "alpha", label: "Alpha CLI", home: { candidates: ["~/.alpha"] }, detect: { pkg: "alpha-cli" } };
-    expect(validate({ id: "a", api: 1, app: declared })).toBe(true);
+    expect(validate({ importName: "a", api: 1, app: declared })).toBe(true);
     expect(definition("appDeclaration")(declared)).toBe(true);
-    expect(validate({ id: "a", api: 1, app: { id: "alpha", label: "Alpha CLI" } })).toBe(false);
+    expect(validate({ importName: "a", api: 1, app: { id: "alpha", label: "Alpha CLI" } })).toBe(false);
   });
 
   it("publishes the resolved app descriptor", () => {
@@ -124,7 +156,7 @@ describe("settings, actions and views", () => {
       { id: "go", parent: "main", component: "button", action: "refresh", icon: "arrow-right" },
     ],
   };
-  const manifest = (extra: object) => ({ id: "demo", api: 2, ...extra });
+  const manifest = (extra: object) => ({ importName: "demo", api: 2, ...extra });
   const refusals = (body: object) => {
     const validate = compile();
     validate(body);
@@ -172,12 +204,12 @@ describe("settings, actions and views", () => {
     );
   });
 
-  it("refuses each Windows reserved id", () => {
-    for (const id of ["con", "prn", "aux", "nul", "com1", "com9", "lpt1", "lpt9"]) {
-      expect(refusals({ id, api: 1 }), id).toContainEqual(expect.objectContaining({ keyword: "pattern", instancePath: "/id" }));
+  it("refuses each Windows reserved import name", () => {
+    for (const importName of ["con", "prn", "aux", "nul", "com1", "com9", "lpt1", "lpt9"]) {
+      expect(refusals({ importName, api: 1 }), importName).toContainEqual(expect.objectContaining({ keyword: "pattern", instancePath: "/importName" }));
     }
-    for (const id of ["con-tools", "console", "com10"]) {
-      expect(refusals({ id, api: 1 }), id).toEqual([]);
+    for (const importName of ["con-tools", "console", "com10"]) {
+      expect(refusals({ importName, api: 1 }), importName).toEqual([]);
     }
   });
 
@@ -210,7 +242,7 @@ describe("settings, actions and views", () => {
 
 describe("a host's declarations", () => {
   const host = {
-    id: "claude-code",
+    importName: "claude-code",
     api: 1,
     kind: "host",
     installMethod: "npm",
@@ -225,49 +257,49 @@ describe("a host's declarations", () => {
 
   it("accepts a plugin that names no kind, and the two kinds", () => {
     const validate = compile();
-    expect(validate({ id: "a", api: 1 })).toBe(true);
-    expect(validate({ id: "a", api: 1, kind: "plugin" })).toBe(true);
-    expect(validate({ id: "a", api: 1, kind: "loader" })).toBe(false);
+    expect(validate({ importName: "a", api: 1 })).toBe(true);
+    expect(validate({ importName: "a", api: 1, kind: "plugin" })).toBe(true);
+    expect(validate({ importName: "a", api: 1, kind: "loader" })).toBe(false);
   });
 
   it("refuses a package entry of an unknown shape, with a fix", () => {
     const validate = compile();
     for (const entry of [42, ["npm-name"], { options: {} }, { name: 7 }, { name: "x", options: "y" }]) {
-      expect(validate({ id: "a", api: 1, packages: { npm: entry } }), JSON.stringify(entry)).toBe(false);
+      expect(validate({ importName: "a", api: 1, packages: { npm: entry } }), JSON.stringify(entry)).toBe(false);
     }
     expect(JSON.stringify(schema.properties.packages.fix)).toContain("name");
   });
 
   it("refuses path commands that are malformed", () => {
     const validate = compile();
-    expect(validate({ id: "a", api: 1, pathCommands: { requested: ["cc"], minimum: 2 } })).toBe(false);
-    expect(validate({ id: "a", api: 1, pathCommands: { requested: ["cc"], minimum: -1 } })).toBe(false);
-    expect(validate({ id: "a", api: 1, pathCommands: { requested: "cc", minimum: 0 } })).toBe(false);
-    expect(validate({ id: "a", api: 1, pathCommands: { minimum: 0 } })).toBe(false);
-    expect(validate({ id: "a", api: 1, pathCommands: { requested: ["cc"] } })).toBe(true);
+    expect(validate({ importName: "a", api: 1, pathCommands: { requested: ["cc"], minimum: 2 } })).toBe(false);
+    expect(validate({ importName: "a", api: 1, pathCommands: { requested: ["cc"], minimum: -1 } })).toBe(false);
+    expect(validate({ importName: "a", api: 1, pathCommands: { requested: "cc", minimum: 0 } })).toBe(false);
+    expect(validate({ importName: "a", api: 1, pathCommands: { minimum: 0 } })).toBe(false);
+    expect(validate({ importName: "a", api: 1, pathCommands: { requested: ["cc"] } })).toBe(true);
   });
 
   it("takes a path command name only when it is one portable file name", () => {
     const validate = compile();
     const longest = "a".repeat(64);
     for (const name of ["cc", "C9", "open-code", "my_tool.v2", longest]) {
-      expect(validate({ id: "a", api: 1, pathCommands: { requested: [name] } }), name).toBe(true);
+      expect(validate({ importName: "a", api: 1, pathCommands: { requested: [name] } }), name).toBe(true);
     }
     for (const name of ["", "-cc", ".cc", "_cc", "../escape", "a/b", "a b", "naïve", `${longest}a`]) {
-      expect(validate({ id: "a", api: 1, pathCommands: { requested: [name] } }), name).toBe(false);
+      expect(validate({ importName: "a", api: 1, pathCommands: { requested: [name] } }), name).toBe(false);
     }
   });
 
   it("refuses methods that are not unique strings", () => {
     const validate = compile();
-    expect(validate({ id: "a", api: 1, methods: ["npm", "npm"] })).toBe(false);
-    expect(validate({ id: "a", api: 1, methods: [1] })).toBe(false);
+    expect(validate({ importName: "a", api: 1, methods: ["npm", "npm"] })).toBe(false);
+    expect(validate({ importName: "a", api: 1, methods: [1] })).toBe(false);
   });
 
   it("keeps the in-application slash commands as they were", () => {
     const validate = compile();
-    expect(validate({ id: "a", api: 1, commands: [{ name: "x", description: "y" }] })).toBe(true);
-    expect(validate({ id: "a", api: 1, commands: { requested: ["cc"], minimum: 1 } })).toBe(false);
+    expect(validate({ importName: "a", api: 1, commands: [{ name: "x", description: "y" }] })).toBe(true);
+    expect(validate({ importName: "a", api: 1, commands: { requested: ["cc"], minimum: 1 } })).toBe(false);
   });
 
   it("ignores a field it does not name", () => {
