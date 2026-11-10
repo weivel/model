@@ -25,6 +25,15 @@ its own tests.
 - `install-method.schema.json`: the schema, as draft-07, of the answers an `install-method` provider
   returns, published at `https://weivel.github.io/model/install-method.schema.json`. Its definitions
   are `detectAnswer` and `operationAnswer`.
+- `marketplace.schema.json`: the schema, as draft-07, of a marketplace list, published at
+  `https://weivel.github.io/model/marketplace.schema.json`: `format` 1, an optional `title`, and at
+  most 10000 `entries`, each a repository `id` with an optional `alias`, `description` and
+  `categories`. It holds no repository name, so a rename changes nothing in it.
+- `marketplace-copy.schema.json`: the schema of the generated copy, published at
+  `https://weivel.github.io/model/marketplace-copy.schema.json`: the same entries with `name` (the
+  alias when one is set), `fullName` and `lastKnown`, and a `built` RFC 3339 timestamp. Nobody
+  edits it. Both reuse the plugin schema's id and import name grammars, and a test holds the
+  copies equal to it.
 - Fields a host or a listing declares about how it is installed, all optional:
   - `kind`: `plugin` or `host`, absent meaning `plugin`. A loader is a host.
   - `packages`: the package under each install method, `{ "<method>": "<name>" | { "name", "options"? } }`.
