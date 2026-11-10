@@ -117,6 +117,10 @@ describe("plugin.schema.json", () => {
     expect(compile()(consumingProvider("calendar"))).toBe(false);
   });
 
+  it("refuses a provider with a trailing newline", () => {
+    expect(compile()(consumingProvider("github:1\n"))).toBe(false);
+  });
+
   it("validates a manifest's app against appDeclaration", () => {
     expect(schema.properties.app).toEqual({ $ref: "#/definitions/appDeclaration" });
     const validate = compile();
@@ -205,10 +209,10 @@ describe("settings, actions and views", () => {
   });
 
   it("refuses each Windows reserved import name", () => {
-    for (const importName of ["con", "prn", "aux", "nul", "com1", "com9", "lpt1", "lpt9"]) {
+    for (const importName of ["con", "prn", "aux", "nul", "com1", "com9", "lpt1", "lpt9", "nul.x", "con.foo", "com1.a"]) {
       expect(refusals({ importName, api: 1 }), importName).toContainEqual(expect.objectContaining({ keyword: "pattern", instancePath: "/importName" }));
     }
-    for (const importName of ["con-tools", "console", "com10"]) {
+    for (const importName of ["con-tools", "console", "com10", "console.foo", "x.nul"]) {
       expect(refusals({ importName, api: 1 }), importName).toEqual([]);
     }
   });
