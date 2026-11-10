@@ -121,6 +121,36 @@ describe("plugin.schema.json", () => {
     expect(compile()(consumingProvider("github:1\n"))).toBe(false);
   });
 
+  it("refuses a provider with a dot segment", () => {
+    expect(compile()(consumingProvider("github:1/.."))).toBe(false);
+    expect(compile()(consumingProvider("github:1/a/../b"))).toBe(false);
+    expect(compile()(consumingProvider("github:1/.hidden"))).toBe(true);
+  });
+
+  const withDependency = (dependency: object) => ({ importName: "a", api: 1, dependencies: [dependency] });
+
+  it("accepts a dependency named by an id", () => {
+    expect(compile()(withDependency({ importName: "runtime", id: "github:12/runtime" }))).toBe(true);
+  });
+
+  it("accepts a dependency named by a name, with a commit and a digest", () => {
+    const dependency = { importName: "runtime", name: "spisor/runtime", commit: "abc", sha256: "def" };
+    expect(compile()(withDependency(dependency))).toBe(true);
+  });
+
+  it("refuses a dependency that carries an id and a name", () => {
+    const dependency = { importName: "runtime", id: "github:12/runtime", name: "spisor/runtime" };
+    expect(compile()(withDependency(dependency))).toBe(false);
+  });
+
+  it("refuses a dependency that carries neither an id nor a name", () => {
+    expect(compile()(withDependency({ importName: "runtime" }))).toBe(false);
+  });
+
+  it("refuses a dependency with no import name", () => {
+    expect(compile()(withDependency({ id: "github:12/runtime" }))).toBe(false);
+  });
+
   it("validates a manifest's app against appDeclaration", () => {
     expect(schema.properties.app).toEqual({ $ref: "#/definitions/appDeclaration" });
     const validate = compile();
