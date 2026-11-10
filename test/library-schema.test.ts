@@ -71,8 +71,18 @@ describe("library.schema.json", () => {
     expect(validate(echoWith((value) => (value.services[0].functions[0].extra = 1)))).toBe(false);
   });
 
-  it("refuses an id that is not kebab case", () => {
-    expect(compile()(echoWith((value) => (value.id = "Echo_Lib")))).toBe(false);
+  it("requires an importName", () => {
+    const validate = compile();
+    expect(validate(echoWith((value) => delete value.importName))).toBe(false);
+    expect(validate.errors).toContainEqual(expect.objectContaining({ keyword: "required", params: { missingProperty: "importName" } }));
+  });
+
+  it("refuses an importName that is not lowercase words", () => {
+    expect(compile()(echoWith((value) => (value.importName = "Echo_Lib")))).toBe(false);
+  });
+
+  it("accepts a declaration with no binary", () => {
+    expect(compile()(echoWith((value) => delete value.binary))).toBe(true);
   });
 
   it("accepts a function that declares its context", () => {

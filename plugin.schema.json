@@ -9,11 +9,11 @@
       "description": "Pointer at the published manifest schema, for an editor's completion and validation.",
       "type": "string"
     },
-    "id": {
-      "description": "The plugin's permanent identity, matching its repository name.",
+    "importName": {
+      "description": "The name other plugins import this plugin by. It is fixed by the plugin, and its identity as a repository is supplied from outside the manifest.",
       "type": "string",
-      "pattern": "^(?!(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?![\\s\\S]))[a-z0-9]+(-[a-z0-9]+)*(?![\\s\\S])",
-      "fix": "use lowercase words joined by single hyphens, for example \"config-ledger\", and not a Windows reserved name (con, prn, aux, nul, com1 to com9, lpt1 to lpt9)"
+      "pattern": "^(?!(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?![\\s\\S]))[a-z0-9]+([-.][a-z0-9]+)*(?![\\s\\S])",
+      "fix": "use lowercase words joined by single hyphens or dots, for example \"config-ledger\" or \"api.http\", and not a Windows reserved name (con, prn, aux, nul, com1 to com9, lpt1 to lpt9)"
     },
     "api": {
       "description": "The lowest API major version this plugin needs. A floor, not a build tag.",
@@ -195,6 +195,12 @@
                   "id": {
                     "description": "The service id this plugin asks for.",
                     "type": "string"
+                  },
+                  "provider": {
+                    "description": "The repository identity of the plugin this plugin takes the service from. Absent means any provider of the service id.",
+                    "type": "string",
+                    "pattern": "^(local:[^/\\s]+|[a-z][a-z0-9-]*(@[a-z0-9.-]+)?:[0-9]+)(/[a-z0-9._-]+)*$",
+                    "fix": "write the provider as a repository id, for example \"github:123\" or \"gitea@git.example.com:12/runtime\""
                   },
                   "optional": {
                     "description": "Whether this plugin still starts when nothing provides the service. Absent means true, which is what a bare string means.",
@@ -504,7 +510,7 @@
     }
   },
   "required": [
-    "id",
+    "importName",
     "api"
   ],
   "if": {

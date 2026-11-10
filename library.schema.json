@@ -2,30 +2,24 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://weivel.github.io/model/library.schema.json",
   "title": "weivel library declaration",
-  "description": "The machine-readable description of a C library: the binary to load and the services its functions offer to plugins.",
+  "description": "The machine-readable description of a C library: the symbol that frees its buffers and the services its functions offer to plugins.",
   "type": "object",
   "properties": {
     "$schema": {
       "description": "Pointer at the published declaration schema, for an editor's completion and validation.",
       "type": "string"
     },
-    "id": {
-      "description": "The library's permanent identity, matching its repository name.",
+    "importName": {
+      "description": "The name plugins import this library by. It is fixed by the library, and its identity as a repository is supplied from outside the declaration.",
       "type": "string",
-      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-      "fix": "use lowercase words joined by single hyphens, for example \"echo\""
+      "pattern": "^[a-z0-9]+([-.][a-z0-9]+)*$",
+      "fix": "use lowercase words joined by single hyphens or dots, for example \"echo\""
     },
     "version": {
       "description": "The library's own version.",
       "type": "string",
       "minLength": 1,
       "fix": "set \"version\" to the library's version, for example \"0.1.0\""
-    },
-    "binary": {
-      "description": "The shared library's base name, without a platform prefix or extension.",
-      "type": "string",
-      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-      "fix": "use a C identifier for the binary's base name, for example \"echo\""
     },
     "release": {
       "description": "The exported symbol that frees a buffer the library returned.",
@@ -99,6 +93,6 @@
       }
     }
   },
-  "required": ["id", "version", "binary", "release", "services"],
+  "required": ["importName", "version", "release", "services"],
   "additionalProperties": false
 }

@@ -12,11 +12,14 @@ its own tests.
 ## Layout
 
 - `plugin.schema.json`: the schema, as draft-07, published at
-  `https://weivel.github.io/model/plugin.schema.json`, which is also its `$id`.
+  `https://weivel.github.io/model/plugin.schema.json`, which is also its `$id`. A manifest states an
+  `importName`, the name other plugins import it by, and no identity: which repository it is comes
+  from outside the manifest. A `services.consumes` object may carry `provider`, the repository id of
+  the plugin it takes the service from.
 - `library.schema.json`: the schema, as draft-07, that a C library's `library.json` is written against,
-  published at `https://weivel.github.io/model/library.schema.json`. It names the binary to load, the
-  symbol that frees a returned buffer, and the services whose JSON functions plugins call; both
-  implementations load a declaration and validate it against this file. A function may declare
+  published at `https://weivel.github.io/model/library.schema.json`. It names the symbol that frees a returned
+  buffer and the services whose JSON functions plugins call; both implementations load a declaration
+  and validate it against this file. A function may declare
   `context`, the facts of the calling process it reads (any of `environment`, `home` and
   `arguments`), which the host then sends beside the argument.
 - `install-method.schema.json`: the schema, as draft-07, of the answers an `install-method` provider
@@ -83,13 +86,13 @@ never draws: it names roles, and each host maps a role to its own look.
   must come earlier in the list, which keeps it a tree.
 - Every role property (`component`, `size`, `emphasis`, `tone`, `chart`) is an enum, so a raw colour
   or a pixel size is refused. A property the schema does not name is ignored, as everywhere else.
-- Keys and ids start with a lowercase letter and continue with letters and digits. A plugin id may
+- Keys and ids start with a lowercase letter and continue with letters and digits. A plugin's `importName` may
   not be a Windows reserved name (`con`, `prn`, `aux`, `nul`, `com1` to `com9`, `lpt1` to `lpt9`).
 
 ## The `install-method` service
 
 The contract every package-manager provider (npm, Homebrew, winget, apt, and any other) implements,
-registered as the service id `<the provider's plugin id>:install-method` by a listing whose manifest
+registered as the service id `<the provider's importName>:install-method` by a listing whose manifest
 names the method it serves in `installMethod`. The host finds a provider through that manifest member
 and looks up exactly that id. The id is namespaced because a bare service id has one holder, and many
 providers must coexist. A provider holds no list of packages: which package an item is under a

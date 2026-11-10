@@ -22,16 +22,20 @@ service**, so `["a:x", { "id": "a:x" }]` lists `a:x` twice.
 ## V2. A bare service id is one the host lists as well-known
 
 An id in `services.provides` is legal when the host lists it as well-known, or when it is namespaced
-by the registering plugin's own id: `<plugin id>:<name>`, both parts non-empty. Anything else is
-refused. This is what makes squatting on another plugin's namespace structurally impossible rather
-than socially discouraged.
+by the registering plugin's own `importName`: `<importName>:<name>`, both parts non-empty. Anything
+else is refused.
+
+**This no longer stops another plugin claiming the namespace.** An `importName` is chosen by the
+plugin and nothing makes it unique, so two plugins can both be legal under `a:x`. What decides which
+one a consumer reaches is `provider` on its `services.consumes` entry, which names the providing
+repository's identity.
 
 - **Why it is not in the schema:** the well-known list is the HOST's, supplied at validation time,
   so the same manifest can be legal on one host and refused on another.
 - **When it is skipped:** a validator given no well-known list does not apply V2. An empty list is
   a list, and refuses every bare id.
 - **Refusal:** the path of the offending entry, for example `services.provides[0]`, with a fix that
-  names the namespaced form, `<plugin id>:<name>`, and the host's well-known ids.
+  names the namespaced form, `<importName>:<name>`, and the host's well-known ids.
 
 ## V3. Every reference in a description resolves
 
