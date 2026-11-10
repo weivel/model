@@ -317,7 +317,7 @@
           "name": {
             "description": "The owner and name of the dependency's repository, for a repository whose id is not known. A name can be taken by someone else, so the host warns about it.",
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9._-]+(?![\\s\\S])",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*/(?!\\.{1,2}(?![\\s\\S]))[A-Za-z0-9._-]+(?![\\s\\S])",
             "fix": "write the dependency name as owner/name, for example \"spisor/runtime\"; a dependency carries an id or a name, never both"
           },
           "commit": {

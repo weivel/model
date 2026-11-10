@@ -143,6 +143,12 @@ describe("plugin.schema.json", () => {
     expect(compile()(withDependency(dependency))).toBe(false);
   });
 
+  it("refuses a dependency name that is a dot segment or looks like an id", () => {
+    for (const name of ["spisor/..", "spisor/.", "github:1/x"]) {
+      expect(compile()(withDependency({ importName: "runtime", name }))).toBe(false);
+    }
+  });
+
   it("refuses a dependency that carries neither an id nor a name", () => {
     expect(compile()(withDependency({ importName: "runtime" }))).toBe(false);
   });
