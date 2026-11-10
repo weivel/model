@@ -83,6 +83,8 @@ describe("plugin.schema.json", () => {
     const validate = compile();
     expect(validate({ importName: "config-ledger", api: 1 })).toBe(true);
     expect(validate({ importName: "Config_Ledger", api: 1 })).toBe(false);
+    expect(validate({ importName: "package", api: 1 })).toBe(false);
+    expect(validate({ importName: "package-lock", api: 1 })).toBe(true);
   });
 
   it("requires an importName", () => {
