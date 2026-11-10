@@ -9,6 +9,8 @@
     "plugin.schema.json",
     "library.schema.json",
     "install-method.schema.json",
+    "marketplace.schema.json",
+    "marketplace-copy.schema.json",
     "ui-data.schema.json",
     "INVARIANTS.md",
     "VALIDATION.md"
