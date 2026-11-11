@@ -34,6 +34,12 @@ its own tests.
   alias when one is set), `fullName` and `lastKnown`, and a `built` RFC 3339 timestamp. Nobody
   edits it. Both reuse the plugin schema's id and import name grammars, and a test holds the
   copies equal to it.
+- `repo.schema.json`: the schema, as draft-07, of `.weivel/repo.json`, what a repository says about itself,
+  published at `https://weivel.github.io/model/repo.schema.json`: `format` 1 and `importName` are required;
+  `description`, `topics` (at most 20), `homepage`, `settings`, `place`, `hosts`, `projects`, `claims` and
+  `dependencies` are optional. A dependency is an `id`, an `importName` and a 40 character `commit`, with a
+  `path` beneath `siblings/`. A path's last segment must equal its `importName`, which draft-07 cannot
+  compare, so a checkout enforces it.
 - Fields a host or a listing declares about how it is installed, all optional:
   - `kind`: `plugin` or `host`, absent meaning `plugin`. A loader is a host.
   - `packages`: the package under each install method, `{ "<method>": "<name>" | { "name", "options"? } }`.

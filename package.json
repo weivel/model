@@ -11,6 +11,7 @@
     "install-method.schema.json",
     "marketplace.schema.json",
     "marketplace-copy.schema.json",
+    "repo.schema.json",
     "ui-data.schema.json",
     "INVARIANTS.md",
     "VALIDATION.md"
