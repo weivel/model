@@ -80,10 +80,10 @@
       }
     },
     "place": {
-      "description": "The folder this repository sits in directly beneath the root of a checkout, for a repository that holds a family of others.",
+      "description": "Where this repository sits, as a path relative to its own org folder, for a repository that holds a family of others. Segments are import names joined by /, with no leading slash and no . or .. segment, so it can never leave the org folder.",
       "type": "string",
-      "pattern": "^[a-z0-9]+([-.][a-z0-9]+)*(?![\\s\\S])",
-      "fix": "write one folder name, for example \"docs\""
+      "pattern": "^[a-z0-9]+([-.][a-z0-9]+)*(/[a-z0-9]+([-.][a-z0-9]+)*)*(?![\\s\\S])",
+      "fix": "write a relative path of lowercase segments, for example \"docs\" or \"shared/library\""
     },
     "hosts": {
       "description": "The owners this repository may be published under, each as a resolver and an account.",
