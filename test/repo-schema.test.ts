@@ -78,6 +78,13 @@ describe("repo.schema.json", () => {
     expect(validate(minimal({ dependencies: [{ ...withoutId, name: "x" }] }))).toBe(false);
   });
 
+  it("accepts a nested place and refuses one that leaves the org folder", () => {
+    expect(validate(minimal({ place: "shared/library" }))).toBe(true);
+    for (const place of ["../x", "/docs", "a/./b", "a/../b", "a//b", "a/"]) {
+      expect(validate(minimal({ place }))).toBe(false);
+    }
+  });
+
   it("refuses a dependency path that leaves siblings or climbs out", () => {
     expect(validate(minimal({ dependencies: [dependency({ path: "siblings/../x" })] }))).toBe(false);
     expect(validate(minimal({ dependencies: [dependency({ path: "other/x" })] }))).toBe(false);
