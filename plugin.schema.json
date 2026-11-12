@@ -44,13 +44,29 @@
       }
     },
     "capabilities": {
-      "description": "Host-facing abilities this plugin provides at activation.",
-      "type": "array",
-      "items": {
-        "type": "string"
+      "description": "The host-facing contract: the abilities this plugin provides at activation, and the ones it asks to see the implementations of.",
+      "type": "object",
+      "properties": {
+        "provides": {
+          "description": "Capability ids this plugin provides at activation.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "fix": "list the capability ids this plugin provides as strings, for example [\"provider\", \"screens\"]",
+          "uniqueItems": true
+        },
+        "consumes": {
+          "description": "Capability ids this plugin asks to see the verified implementations of. An empty answer means none right now.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "fix": "list the capability ids this plugin consumes as strings, for example [\"provider\"]",
+          "uniqueItems": true
+        }
       },
-      "fix": "list capability ids as strings, for example [\"provider\", \"screens\"]",
-      "uniqueItems": true
+      "fix": "write capabilities as an object, for example { \"provides\": [\"provider\"], \"consumes\": [\"screens\"] }; a flat list of ids is the old form, move it under \"provides\""
     },
     "targets": {
       "description": "The spisor applications this artifact is for. Absent means every application.",
@@ -588,8 +604,16 @@
     ],
     "properties": {
       "capabilities": {
-        "type": "array",
-        "minItems": 1
+        "type": "object",
+        "required": [
+          "provides"
+        ],
+        "properties": {
+          "provides": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
       }
     }
   },
@@ -602,7 +626,7 @@
       "entry": {
         "type": "string",
         "minLength": 1,
-        "fix": "capabilities are declared, so add \"entry\" naming the module that provides them, for example \"dist/index.js\""
+        "fix": "capabilities are provided, so add \"entry\" naming the module that provides them, for example \"dist/index.js\""
       }
     }
   },

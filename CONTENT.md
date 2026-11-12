@@ -2,7 +2,7 @@
 
 The plugin model: `plugin.schema.json`, the one schema every `plugin.json` is written against and
 every implementation validates against, whichever application the plugin targets, and
-`INVARIANTS.md`, the thirteen properties every implementation holds whatever its language.
+`INVARIANTS.md`, the fourteen properties every implementation holds whatever its language.
 
 **It lives outside every implementation on purpose.** An implementation that holds the vocabulary
 defines it, and every other language then reads that implementation's output rather than a neutral
@@ -16,6 +16,8 @@ its own tests.
   `importName`, the name other plugins import it by, and no identity: which repository it is comes
   from outside the manifest. A `services.consumes` object may carry `provider`, the repository id of
   the plugin it takes the service from.
+  `capabilities` is an object: `provides` lists the abilities the plugin provides at activation and needs an
+  `entry`, and `consumes` lists the capability ids it asks to see the verified implementations of.
 - `library.schema.json`: the schema, as draft-07, that a C library's `library.json` is written against,
   published at `https://weivel.github.io/model/library.schema.json`. It names the symbol that frees a returned
   buffer and the services whose JSON functions plugins call; both implementations load a declaration

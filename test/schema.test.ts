@@ -49,11 +49,41 @@ describe("plugin.schema.json", () => {
     expect(schema.$id).toBe(SCHEMA_URL);
   });
 
-  it("refuses capabilities without an entry", () => {
+  it("refuses provided capabilities without an entry", () => {
     const validate = compile();
-    expect(validate({ importName: "a", api: 1, capabilities: ["provider"] })).toBe(false);
-    expect(validate({ importName: "a", api: 1, capabilities: ["provider"], entry: "dist/index.js" })).toBe(true);
-    expect(validate({ importName: "a", api: 1, capabilities: [] })).toBe(true);
+    expect(validate({ importName: "a", api: 1, capabilities: { provides: ["provider"] } })).toBe(false);
+    expect(validate({ importName: "a", api: 1, capabilities: { provides: ["provider"] }, entry: "dist/index.js" })).toBe(true);
+    expect(validate({ importName: "a", api: 1, capabilities: { provides: [] } })).toBe(true);
+  });
+
+  it("accepts a plugin that provides and consumes the same capability", () => {
+    const manifest = { importName: "a", api: 1, entry: "dist/index.js", capabilities: { provides: ["provider"], consumes: ["provider"] } };
+    expect(compile()(manifest)).toBe(true);
+  });
+
+  it("needs no entry for a plugin that only consumes", () => {
+    const validate = compile();
+    expect(validate({ importName: "a", api: 1, capabilities: { consumes: ["provider"] } })).toBe(true);
+    expect(validate({ importName: "a", api: 1, capabilities: {} })).toBe(true);
+  });
+
+  it("ignores an unknown key inside capabilities", () => {
+    expect(compile()({ importName: "a", api: 1, capabilities: { consumes: ["provider"], later: 1 } })).toBe(true);
+  });
+
+  it("refuses the flat capabilities list and names provides in the fix", () => {
+    const ajv = new Ajv({ strict: true, allErrors: true, verbose: true });
+    ajv.addKeyword({ keyword: "fix", schemaType: "string" });
+    const validate = ajv.compile(schema);
+    expect(validate({ importName: "a", api: 1, entry: "dist/index.js", capabilities: ["provider"] })).toBe(false);
+    const fixes = (validate.errors ?? []).map((error) => (error.parentSchema as { fix?: string } | undefined)?.fix ?? "");
+    expect(fixes.some((fix) => fix.includes("provides"))).toBe(true);
+  });
+
+  it("refuses a duplicate id inside provides or consumes", () => {
+    const validate = compile();
+    expect(validate({ importName: "a", api: 1, entry: "x", capabilities: { provides: ["a", "a"] } })).toBe(false);
+    expect(validate({ importName: "a", api: 1, capabilities: { consumes: ["a", "a"] } })).toBe(false);
   });
 
   it("refuses an entry outside the repo", () => {
@@ -75,7 +105,7 @@ describe("plugin.schema.json", () => {
 
   it("refuses a duplicate capability or permission", () => {
     const validate = compile();
-    expect(validate({ importName: "a", api: 1, entry: "dist/index.js", capabilities: ["a", "a"] })).toBe(false);
+    expect(validate({ importName: "a", api: 1, entry: "dist/index.js", capabilities: { provides: ["a", "a"] } })).toBe(false);
     expect(validate({ importName: "a", api: 1, permissions: ["net", "net"] })).toBe(false);
   });
 
