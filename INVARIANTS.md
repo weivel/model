@@ -65,3 +65,19 @@ render it away.
     absent member is absent, never a stub that drops what it is handed.
     A weivel host need not be a spisor host, and without the refusal a portable write on such a host
     would land silently in the application layer, where a plugin would never look for it again.
+14. **A consumer reaches only the capabilities it declared, and sees only verified implementations.**
+    An implementation joins the answer for its capability when its plugin's activation is verified, not
+    when `provide` is called, and leaves it when the plugin is quarantined or released. `all` answers in
+    activation order, the order the host's own lookup keeps. `watch` reports future changes only, as
+    `watch` on a service does, and the listener is handed the implementation with `"provide"` or
+    `"withdraw"`; on `"withdraw"` it is handed the implementation that left, so a consumer can drop
+    exactly that one, and a listener that throws is reported while the rest still hear. `all` and
+    `watch` answer for an id the plugin lists under `capabilities.consumes` or `capabilities.provides`
+    and for nothing else: an undeclared `all` answers an empty list, an undeclared `watch` is inert,
+    and the host reports the refusal once per plugin and id with a fix naming `capabilities.consumes`,
+    so a refusal never reads as absence. A plugin reaching a capability it provides itself sees its own
+    implementation. The declaration check runs before the check for a plugin that is no longer running:
+    a stopped plugin's `all` is let through, a late `watch` is refused as late. Consuming a capability
+    draws no ordering edge, because the answer is live (invariant 9). Without the verified boundary a
+    consumer is handed an implementation about to be quarantined for a declaration mismatch, and calls
+    a plugin the host has already refused.
